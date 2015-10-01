@@ -19,7 +19,9 @@
 
 BINARY = msc
 
-OBJS = ramdisk.o
+VPATH += $(COMMON_DIR)/usb_msc
+CPPFLAGS += -I$(COMMON_DIR)/usb_msc
+OBJS = msc-target.o ramdisk.o
 
 LDSCRIPT = ../stm32f429i-discovery.ld
 

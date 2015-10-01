@@ -22,28 +22,12 @@
 
 #include <stdlib.h>
 #include <unicore-mx/usbd/usbd.h>
-#include <unicore-mx/usb/cdc.h>
+#include <unicore-mx/usb/class/cdc.h>
+#include <unicore-mx/usbd/misc/string.h>
 #include <unicore-mx/lm4f/rcc.h>
 #include <unicore-mx/cm3/scb.h>
 #include <unicore-mx/lm4f/nvic.h>
 #include <unicore-mx/lm4f/usb.h>
-
-static const struct usb_device_descriptor dev = {
-	.bLength = USB_DT_DEVICE_SIZE,
-	.bDescriptorType = USB_DT_DEVICE,
-	.bcdUSB = 0x2000,
-	.bDeviceClass = USB_CLASS_CDC,
-	.bDeviceSubClass = 0,
-	.bDeviceProtocol = 0,
-	.bMaxPacketSize0 = 64,
-	.idVendor = 0xc03e,
-	.idProduct = 0xb007,
-	.bcdDevice = 0x2000,
-	.iManufacturer = 1,
-	.iProduct = 2,
-	.iSerialNumber = 3,
-	.bNumConfigurations = 1,
-};
 
 /*
  * This notification endpoint isn't implemented. According to CDC spec it's
@@ -124,7 +108,7 @@ static const struct usb_interface_descriptor comm_iface[] = {{
 	.endpoint = comm_endp,
 
 	.extra = &cdcacm_functional_descriptors,
-	.extralen = sizeof(cdcacm_functional_descriptors)
+	.extra_len = sizeof(cdcacm_functional_descriptors)
 }};
 
 static const struct usb_interface_descriptor data_iface[] = {{
@@ -149,7 +133,7 @@ static const struct usb_interface ifaces[] = {{
 	.altsetting = data_iface,
 }};
 
-static const struct usb_config_descriptor config = {
+static const struct usb_config_descriptor config[] = {{
 	.bLength = USB_DT_CONFIGURATION_SIZE,
 	.bDescriptorType = USB_DT_CONFIGURATION,
 	.wTotalLength = 0,
@@ -160,33 +144,56 @@ static const struct usb_config_descriptor config = {
 	.bMaxPower = 0x32,
 
 	.interface = ifaces,
+}};
+
+static const struct usb_device_descriptor dev = {
+	.bLength = USB_DT_DEVICE_SIZE,
+	.bDescriptorType = USB_DT_DEVICE,
+	.bcdUSB = 0x2000,
+	.bDeviceClass = USB_CLASS_CDC,
+	.bDeviceSubClass = 0,
+	.bDeviceProtocol = 0,
+	.bMaxPacketSize0 = 64,
+	.idVendor = 0xc03e,
+	.idProduct = 0xb007,
+	.bcdDevice = 0x2000,
+	.iManufacturer = 1,
+	.iProduct = 2,
+	.iSerialNumber = 3,
+	.bNumConfigurations = 1,
+
+	.config = config
 };
 
-static const char *usb_strings[] = {
+static const char *usb_strings_ascii[] = {
 	"unicore-mx",
 	"usb_to_serial_cdcacm",
 	"none",
 	"DEMO",
 };
 
+static int usb_strings(usbd_device *usbd_dev, struct usbd_get_string_arg *arg)
+{
+	(void) usbd_dev;
+	return usbd_handle_string_ascii(arg, usb_strings_ascii, 4);
+}
+
 usbd_device *acm_dev;
 uint8_t usbd_control_buffer[128];
-extern usbd_driver lm4f_usb_driver;
 
-static int cdcacm_control_request(usbd_device * usbd_dev,
-				  struct usb_setup_data *req, uint8_t ** buf,
-				  uint16_t * len,
-				  void (**complete) (usbd_device * usbd_dev,
-						     struct usb_setup_data *
-						     req))
+static enum usbd_control_result
+cdcacm_control_request(usbd_device *usbd_dev, struct usbd_control_arg *arg)
 {
 	uint8_t dtr, rts;
-
-	(void)complete;
-	(void)buf;
+	const uint8_t bmReqMask = USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT;
+	const uint8_t bmReqVal = USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE;
 	(void)usbd_dev;
 
-	switch (req->bRequest) {
+	if ((arg->setup.bmRequestType & bmReqMask) != bmReqVal) {
+		return USBD_REQ_NEXT;
+	}
+
+	switch (arg->setup.bRequest) {
 	case USB_CDC_REQ_SET_CONTROL_LINE_STATE:{
 			/*
 			 * This Linux cdc_acm driver requires this to be implemented
@@ -194,30 +201,32 @@ static int cdcacm_control_request(usbd_device * usbd_dev,
 			 * advertise it in the ACM functional descriptor.
 			 */
 
-			dtr = (req->wValue & (1 << 0)) ? 1 : 0;
-			rts = (req->wValue & (1 << 1)) ? 1 : 0;
+			dtr = (arg->setup.wValue & (1 << 0)) ? 1 : 0;
+			rts = (arg->setup.wValue & (1 << 1)) ? 1 : 0;
 
 			glue_set_line_state_cb(dtr, rts);
 
-			return 1;
+			return USBD_REQ_HANDLED;
 		}
 	case USB_CDC_REQ_SET_LINE_CODING:{
 			struct usb_cdc_line_coding *coding;
 
-			if (*len < sizeof(struct usb_cdc_line_coding))
-				return 0;
+			if (arg->len < sizeof(struct usb_cdc_line_coding)) {
+				return USBD_REQ_STALL;
+			}
 
-			coding = (struct usb_cdc_line_coding *)*buf;
+			coding = (struct usb_cdc_line_coding *)arg->buf;
 			return glue_set_line_coding_cb(coding->dwDTERate,
 						       coding->bDataBits,
 						       coding->bParityType,
 						       coding->bCharFormat);
 		}
 	}
-	return 0;
+
+	return USBD_REQ_STALL;
 }
 
-static void cdcacm_data_rx_cb(usbd_device * usbd_dev, uint8_t ep)
+static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 {
 	uint8_t buf[64];
 
@@ -232,21 +241,15 @@ void cdcacm_send_data(uint8_t * buf, uint16_t len)
 	usbd_ep_write_packet(acm_dev, 0x82, buf, len);
 }
 
-static void cdcacm_set_config(usbd_device * usbd_dev, uint16_t wValue)
+static void cdcacm_set_config(usbd_device *usbd_dev,
+				const struct usb_config_descriptor *cfg)
 {
-	(void)wValue;
+	(void)cfg;
 
 	usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_BULK, 64,
 		      cdcacm_data_rx_cb);
 	usbd_ep_setup(usbd_dev, 0x82, USB_ENDPOINT_ATTR_BULK, 64, NULL);
 	usbd_ep_setup(usbd_dev, 0x83, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
-
-	usbd_register_control_callback(usbd_dev,
-				       USB_REQ_TYPE_CLASS |
-				       USB_REQ_TYPE_INTERFACE,
-				       USB_REQ_TYPE_TYPE |
-				       USB_REQ_TYPE_RECIPIENT,
-				       cdcacm_control_request);
 }
 
 void cdcacm_line_state_changed_cb(uint8_t linemask)
@@ -289,10 +292,12 @@ void cdcacm_init(void)
 
 	usb_pins_setup();
 
-	usbd_dev = usbd_init(&lm4f_usb_driver, &dev, &config, usb_strings, 4,
+	usbd_dev = usbd_init(USBD_LM4F, &dev,
 			     usbd_control_buffer, sizeof(usbd_control_buffer));
 	acm_dev = usbd_dev;
 	usbd_register_set_config_callback(usbd_dev, cdcacm_set_config);
+	usbd_register_control_callback(usbd_dev, cdcacm_control_request);
+	usbd_register_get_string_callback(usbd_dev, usb_strings);
 
 	usb_ints_setup();
 }

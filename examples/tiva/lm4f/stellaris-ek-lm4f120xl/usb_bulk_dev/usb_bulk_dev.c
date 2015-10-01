@@ -27,9 +27,10 @@
 #include <unicore-mx/lm4f/gpio.h>
 #include <unicore-mx/lm4f/nvic.h>
 #include <unicore-mx/usbd/usbd.h>
+#include <unicore-mx/usbd/misc/string.h>
 #include <unicore-mx/lm4f/usb.h>
 
-#include<stdio.h>
+#include <stdio.h>
 
 int _write(int file, char *ptr, int len);
 void uart_setup(void);
@@ -80,23 +81,6 @@ static bool bypass = false;
 /* =============================================================================
  * = USB descriptors
  * ---------------------------------------------------------------------------*/
-
-static const struct usb_device_descriptor dev_descr = {
-	.bLength = USB_DT_DEVICE_SIZE,
-	.bDescriptorType = USB_DT_DEVICE,
-	.bcdUSB = 0x0110,
-	.bDeviceClass = 0xff,
-	.bDeviceSubClass = 0,
-	.bDeviceProtocol = 0,
-	.bMaxPacketSize0 = 64,
-	.idVendor = 0xc03e,
-	.idProduct = 0xb007,
-	.bcdDevice = 0x0110,
-	.iManufacturer = 1,
-	.iProduct = 2,
-	.iSerialNumber = 3,
-	.bNumConfigurations = 1,
-};
 
 static const struct usb_endpoint_descriptor bulk_endp[] = {{
 	.bLength = USB_DT_ENDPOINT_SIZE,
@@ -156,7 +140,7 @@ static const struct usb_interface_descriptor bulk_iface[] = {{
 	.endpoint = bulk_endp,
 
 	.extra = NULL,
-	.extralen = 0,
+	.extra_len = 0,
 }};
 
 static const struct usb_interface ifaces[] = {{
@@ -164,7 +148,7 @@ static const struct usb_interface ifaces[] = {{
 	.altsetting = bulk_iface,
 }};
 
-static const struct usb_config_descriptor config_descr = {
+static const struct usb_config_descriptor config_descr[] = {{
 	.bLength = USB_DT_CONFIGURATION_SIZE,
 	.bDescriptorType = USB_DT_CONFIGURATION,
 	.wTotalLength = 0,
@@ -174,19 +158,43 @@ static const struct usb_config_descriptor config_descr = {
 	.bmAttributes = 0x80,
 	.bMaxPower = 0x32,
 	.interface = ifaces,
+}};
+
+static const struct usb_device_descriptor dev_descr = {
+	.bLength = USB_DT_DEVICE_SIZE,
+	.bDescriptorType = USB_DT_DEVICE,
+	.bcdUSB = 0x0110,
+	.bDeviceClass = 0xff,
+	.bDeviceSubClass = 0,
+	.bDeviceProtocol = 0,
+	.bMaxPacketSize0 = 64,
+	.idVendor = 0xc03e,
+	.idProduct = 0xb007,
+	.bcdDevice = 0x0110,
+	.iManufacturer = 1,
+	.iProduct = 2,
+	.iSerialNumber = 3,
+	.bNumConfigurations = 1,
+
+	.config = config_descr
 };
 
-extern usbd_driver lm4f_usb_driver;
 static usbd_device *bulk_dev;
 static uint8_t usbd_control_buffer[128];
 static uint8_t config_set = 0;
 
-static const char *usb_strings[] = {
-	"unicore-mx",
+static const char *usb_strings_ascii[] = {
+	"unicore-mx"
 	"usb_dev_bulk",
 	"none",
 	"DEMO",
 };
+
+static int usb_strings(usbd_device *usbd_dev, struct usbd_get_string_arg *arg)
+{
+	(void)usbd_dev;
+	return usbd_handle_string_ascii(arg, usb_strings_ascii, 4);
+}
 
 /* =============================================================================
  * = USB Module
@@ -224,7 +232,7 @@ static void usb_ints_setup(void)
  *
  * This gets called whenever a new OUT packet has arrived.
  */
-static void bulk_rx_cb(usbd_device * usbd_dev, uint8_t ep)
+static void bulk_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 {
 	char buf[64] __attribute__ ((aligned(4)));
 
@@ -239,7 +247,7 @@ static void bulk_rx_cb(usbd_device * usbd_dev, uint8_t ep)
  *
  * This gets called whenever an IN packet has been successfully transmitted.
  */
-static void bulk_tx_cb(usbd_device * usbd_dev, uint8_t ep)
+static void bulk_tx_cb(usbd_device *usbd_dev, uint8_t ep)
 {
 	char buf[64] __attribute__ ((aligned(4)));
 
@@ -254,11 +262,12 @@ static void bulk_tx_cb(usbd_device * usbd_dev, uint8_t ep)
  *
  * Called after the host issues a SetConfiguration request.
  */
-static void set_config(usbd_device * usbd_dev, uint16_t wValue)
+static void set_config(usbd_device *usbd_dev,
+				const struct usb_config_descriptor *cfg)
 {
 	uint8_t data[64] __attribute__ ((aligned(4)));
 
-	(void)wValue;
+	(void)cfg;
 	printf("Configuring endpoints.\n\r");
 	usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_BULK, 64, bulk_rx_cb);
 	usbd_ep_setup(usbd_dev, 0x82, USB_ENDPOINT_ATTR_BULK, 64, bulk_tx_cb);
@@ -334,10 +343,10 @@ int main(void)
 	/* Mux the GPIO pins to the USB peripheral */
 	usb_setup();
 	/* Let the stack take care of the rest */
-	bulk_dev = usbd_init(&lm4f_usb_driver, &dev_descr, &config_descr,
-			     usb_strings, 4,
+	bulk_dev = usbd_init(USBD_LM4F, &dev_descr,
 			     usbd_control_buffer, sizeof(usbd_control_buffer));
 	usbd_register_set_config_callback(bulk_dev, set_config);
+	usbd_register_get_string_callback(bulk_dev, usb_strings);
 	/* Enable the interrupts. */
 	usb_ints_setup();
 

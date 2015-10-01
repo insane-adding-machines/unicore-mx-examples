@@ -17,7 +17,11 @@
 ## along with this library.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-BINARY = usbiap
+BINARY = usbdfu
+
+VPATH += $(COMMON_DIR)/usb_dfu
+CPPFLAGS += -I$(COMMON_DIR)/usb_dfu
+OBJS = usbdfu-target.o
 
 LDSCRIPT = ../stm32-h103.ld
 
