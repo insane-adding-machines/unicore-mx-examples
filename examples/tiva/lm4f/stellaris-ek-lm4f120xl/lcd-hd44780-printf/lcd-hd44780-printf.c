@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2016 Alexandru Gagniuc <mr.nuke.me@gmail.com>
  *
@@ -19,9 +19,9 @@
 
 #include "hd44780-lcd-printf.h"
 
-#include <libopencm3/lm4f/systemcontrol.h>
-#include <libopencm3/lm4f/gpio.h>
-#include <libopencm3/lm4f/uart.h>
+#include <unicore-mx/lm4f/systemcontrol.h>
+#include <unicore-mx/lm4f/gpio.h>
+#include <unicore-mx/lm4f/uart.h>
 #include <stdio.h>
 
 
@@ -33,7 +33,7 @@ static const uint8_t wave[] = {0x00, 0x04, 0x12, 0x0a, 0x0a, 0x12, 0x04, 0x00};
 int main(void)
 {
 	size_t rx_chars, tx_chars, old_rx_num, old_tx_num;
-	const char *greeting = "libopencm3 ";
+	const char *greeting = "unicore-mx ";
 
 	gpio_enable_ahb_aperture();
 	uart_setup();
@@ -42,7 +42,7 @@ int main(void)
 	lcd_init(my_vfd);
 	lcd_clear_display(my_vfd);
 
-	uart_printf("Hello from libopencm3-examples\n");
+	uart_printf("Hello from unicore-mx-examples\n");
 
 	/* Write data using lcd_put_string(). */
 	lcd_put_string(my_vfd, 0, 0, greeting);

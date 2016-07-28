@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2010 Gareth McMullin <gareth@blacksphere.co.nz>
  *
@@ -18,15 +18,15 @@
  */
 
 #include <stdlib.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/usb/usbd.h>
-#include <libopencm3/usb/cdc.h>
-#include <libopencm3/cm3/scb.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/usbd/usbd.h>
+#include <unicore-mx/usb/cdc.h>
+#include <unicore-mx/cm3/scb.h>
 
 #define COMM_IN_EP	0x83
 #define DATA_IN_EP	0x82
-#define DATA_OUT_EP	0x01	
+#define DATA_OUT_EP	0x01
 
 /* Buffer to be used for control requests. */
 static uint8_t usbd_control_buffer[128];
@@ -162,7 +162,7 @@ static const struct usb_config_descriptor config = {
 	.bNumInterfaces = sizeof(ifaces)/sizeof(ifaces[0]),
 	.bConfigurationValue = 1,
 	.iConfiguration = 0,
-	.bmAttributes = 0x80,	// D7 is reserved and must be set to one for 
+	.bmAttributes = 0x80,	// D7 is reserved and must be set to one for
 			 	// historical reasons (Table 9-10)
 	.bMaxPower = 0x32, 	// 100mA
 
@@ -205,12 +205,12 @@ static int cdcacm_control_request(usbd_device *usbd_dev,
 static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 {
 	(void)ep;
-	
+
 	size_t len = usbd_ep_read_packet(usbd_dev, DATA_OUT_EP, data_buf,
 		sizeof(data_buf));
 
 	if (len) {
-		while (usbd_ep_write_packet(usbd_dev, DATA_IN_EP, 
+		while (usbd_ep_write_packet(usbd_dev, DATA_IN_EP,
 			data_buf, len) == 0);
 	}
 }
@@ -219,11 +219,11 @@ static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
 {
 	(void)wValue;
 
-	usbd_ep_setup(usbd_dev, DATA_OUT_EP, USB_ENDPOINT_ATTR_BULK, 
+	usbd_ep_setup(usbd_dev, DATA_OUT_EP, USB_ENDPOINT_ATTR_BULK,
 			sizeof(data_buf), cdcacm_data_rx_cb);
-	usbd_ep_setup(usbd_dev, DATA_IN_EP, USB_ENDPOINT_ATTR_BULK, 
+	usbd_ep_setup(usbd_dev, DATA_IN_EP, USB_ENDPOINT_ATTR_BULK,
 			sizeof(data_buf), NULL);
-	usbd_ep_setup(usbd_dev, COMM_IN_EP, USB_ENDPOINT_ATTR_INTERRUPT, 
+	usbd_ep_setup(usbd_dev, COMM_IN_EP, USB_ENDPOINT_ATTR_INTERRUPT,
 			16, NULL);
 
 	usbd_register_control_callback(

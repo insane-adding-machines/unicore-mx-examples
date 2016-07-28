@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
  *
@@ -17,10 +17,10 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/usart.h>
-#include <libopencm3/cm3/nvic.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/usart.h>
+#include <unicore-mx/cm3/nvic.h>
 
 static void clock_setup(void)
 {
@@ -71,7 +71,7 @@ static void gpio_setup(void)
 	/* Setup GPIO8 (in GPIO port A) for LED use. */
 	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ,
 		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO8);
-	
+
 	gpio_set(GPIOC, GPIO15);
 
 	/* Setup GPIO15 (in GPIO port C) for LED use. */

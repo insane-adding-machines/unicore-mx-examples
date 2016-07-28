@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2012 Benjamin Vernoux <titanmkd@gmail.com>
  *
@@ -25,7 +25,7 @@ extern "C"
 {
 #endif
 
-#include <libopencm3/lpc43xx/scu.h>
+#include <unicore-mx/lpc43xx/scu.h>
 
 /*
  * JellyBean SCU PinMux

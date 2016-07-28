@@ -1,7 +1,7 @@
 #include "lcd-spi.h"
 
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2014 Chuck McManis <cmcmanis@mcmanis.com>
  *
@@ -25,10 +25,10 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include <libopencm3/stm32/spi.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/cm3/nvic.h>
+#include <unicore-mx/stm32/spi.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/cm3/nvic.h>
 
 #include "clock.h"
 
@@ -50,7 +50,7 @@ static volatile uint16_t spi_rx_buf;
 
 /*
  * This is the ISR we use. Note that the name is based on the name
- * in the irq.json file of libopencm3 plus the "_isr" extension.
+ * in the irq.json file of unicore-mx plus the "_isr" extension.
  */
 void
 spi5_isr(void)

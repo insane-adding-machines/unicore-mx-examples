@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 #
-# This file is part of the libopencm3 project.
+# This file is part of the unicore-mx project.
 #
 # Copyright (C) 2011 Piotr Esden-Tempski <piotr@esden.net>
 #

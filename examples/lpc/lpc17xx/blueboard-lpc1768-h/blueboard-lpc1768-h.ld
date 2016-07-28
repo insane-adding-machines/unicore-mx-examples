@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2010 Uwe Hermann <uwe@hermann-uwe.de>
  *
@@ -29,4 +29,4 @@ MEMORY
 }
 
 /* Include the common ld script. */
-INCLUDE libopencm3_lpc17xx.ld
+INCLUDE libucmx_lpc17xx.ld

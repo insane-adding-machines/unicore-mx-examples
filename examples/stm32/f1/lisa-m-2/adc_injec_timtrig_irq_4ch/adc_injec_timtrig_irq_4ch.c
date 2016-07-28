@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2010 Thomas Otto <tommi@viadmin.org>
  * Copyright (C) 2012 Piotr Esden-Tempski <piotr@esden.net>
@@ -19,13 +19,13 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/flash.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/adc.h>
-#include <libopencm3/stm32/usart.h>
-#include <libopencm3/stm32/timer.h>
-#include <libopencm3/cm3/nvic.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/flash.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/adc.h>
+#include <unicore-mx/stm32/usart.h>
+#include <unicore-mx/stm32/timer.h>
+#include <unicore-mx/cm3/nvic.h>
 
 volatile uint16_t temperature = 0;
 volatile uint16_t v_refint = 0;
@@ -69,7 +69,7 @@ static void gpio_setup(void)
 
 	/* Setup Lisa/M v2 ADC1,2 on ANALOG1 connector */
 	gpio_set_mode(GPIOC, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG,                                \
-					GPIO3 | GPIO0 );    
+					GPIO3 | GPIO0 );
 }
 
 static void timer_setup(void)

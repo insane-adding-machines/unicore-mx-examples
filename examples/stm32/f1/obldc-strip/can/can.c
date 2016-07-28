@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2012 Piotr Esden-Tempski <piotr@esden.net>
  *
@@ -17,12 +17,12 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/cm3/systick.h>
-#include <libopencm3/stm32/can.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/flash.h>
-#include <libopencm3/stm32/rcc.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/cm3/systick.h>
+#include <unicore-mx/stm32/can.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/flash.h>
+#include <unicore-mx/stm32/rcc.h>
 
 struct can_tx_msg {
 	uint32_t std_id;
@@ -110,9 +110,9 @@ static void can_setup(void)
 	can_reset(CAN1);
 
 	/* CAN cell init.
-	 * Setting the bitrate to 1MBit. APB1 = 32MHz, 
+	 * Setting the bitrate to 1MBit. APB1 = 32MHz,
 	 * prescaler = 2 -> 16MHz time quanta frequency.
-	 * 1tq sync + 9tq bit segment1 (TS1) + 6tq bit segment2 (TS2) = 
+	 * 1tq sync + 9tq bit segment1 (TS1) + 6tq bit segment2 (TS2) =
 	 * 16time quanto per bit period, therefor 16MHz/16 = 1MHz
 	 */
 	if (can_init(CAN1,

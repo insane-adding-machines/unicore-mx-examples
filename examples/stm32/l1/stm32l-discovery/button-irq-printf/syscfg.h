@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2012 Karl Palsson <karlp@tweak.net.au>
  *
@@ -24,10 +24,10 @@
 extern "C" {
 #endif
 
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/exti.h>
-#include <libopencm3/stm32/usart.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/exti.h>
+#include <unicore-mx/stm32/usart.h>
 
 
 #define USART_CONSOLE USART2

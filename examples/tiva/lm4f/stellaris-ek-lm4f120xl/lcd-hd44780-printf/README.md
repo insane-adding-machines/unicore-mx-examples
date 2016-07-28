@@ -51,7 +51,7 @@ counters.
 
 ## Main application
 
-the application prints the "libopencm3" text on the first line of the display,
+the application prints the "unicore-mx" text on the first line of the display,
 followed by two special characters. The number of bytes sent and received over
 UART0 are displayed on the second line. The display is updated whenever one of
 the counters changes.

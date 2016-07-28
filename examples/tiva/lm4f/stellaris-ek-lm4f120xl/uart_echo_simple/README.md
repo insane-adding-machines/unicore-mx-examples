@@ -1,6 +1,6 @@
 # README
 
-This example demonstrates the ease of setting up the UART with libopencm3.
+This example demonstrates the ease of setting up the UART with unicore-mx.
 Basic UART echo is achieved by using blocking reads and writes. The UART is set
 up as 921600-8N1.
 PA0 is the Rx pin, and PA1 is the Tx pin (from the LM4F perspective). These

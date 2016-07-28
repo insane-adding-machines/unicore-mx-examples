@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
  * Copyright (C) 2014 Stefan Agner <stefan@agner.ch>
@@ -20,11 +20,11 @@
 
 #include <stdio.h>
 #include <errno.h>
-#include <libopencm3/cm3/common.h>
-#include <libopencm3/vf6xx/ccm.h>
-#include <libopencm3/vf6xx/uart.h>
-#include <libopencm3/vf6xx/gpio.h>
-#include <libopencm3/vf6xx/iomuxc.h>
+#include <unicore-mx/cm3/common.h>
+#include <unicore-mx/vf6xx/ccm.h>
+#include <unicore-mx/vf6xx/uart.h>
+#include <unicore-mx/vf6xx/gpio.h>
+#include <unicore-mx/vf6xx/iomuxc.h>
 
 
 static const uint32_t gpio_out = IOMUXC_PAD(MUX_MODE_ALT0, SPEED_LOW, \

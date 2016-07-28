@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2010 Thomas Otto <tommi@viadmin.org>
  * Copyright (C) 2010 Piotr Esden-Tempski <piotr@esden.net>
@@ -18,11 +18,11 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/flash.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/cm3/systick.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/flash.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/cm3/systick.h>
 
 uint32_t temp32;
 
@@ -44,7 +44,7 @@ static void gpio_setup(void)
 		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO6);
 	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ,
 		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO7);
-	
+
 	/* Set GPIO0/1 (in GPIO port B) to 'output push-pull' for the LEDs. */
 	gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ,
 		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO0);

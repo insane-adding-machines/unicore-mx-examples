@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2015 brabo <brabo.sil@gmail.com>
  *
@@ -19,9 +19,9 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <libopencm3/stm32/i2c.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
+#include <unicore-mx/stm32/i2c.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
 #include "stmpe811.h"
 #include "clock.h"
 

@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
  * Copyright (C) 2013 Stephen Dwyer <scdwyer@ualberta.ca>
@@ -18,12 +18,12 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/usart.h>
-#include <libopencm3/stm32/dma.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/stm32/spi.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/usart.h>
+#include <unicore-mx/stm32/dma.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/stm32/spi.h>
 #include <stdio.h>
 #include <errno.h>
 
@@ -147,7 +147,7 @@ static void dma_int_disable(void) {
 
 static void dma_setup(void)
 {
-	dma_int_enable();	
+	dma_int_enable();
 }
 
 #if USE_16BIT_TRANSFERS
@@ -155,7 +155,7 @@ static int spi_dma_transceive(uint16_t *tx_buf, int tx_len, uint16_t *rx_buf, in
 #else
 static int spi_dma_transceive(uint8_t *tx_buf, int tx_len, uint8_t *rx_buf, int rx_len)
 #endif
-{	
+{
 
 	/* Check for 0 length in both tx and rx */
 	if ((rx_len < 1) && (tx_len < 1)) {
@@ -498,7 +498,7 @@ int main(void)
 			tx_packet[i] = (uint8_t)i;
 #endif
 			rx_packet[i] = 0x42;
-		}		
+		}
 	}
 
 	return 0;

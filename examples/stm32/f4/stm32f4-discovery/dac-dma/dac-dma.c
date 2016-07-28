@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2014 Ken Sarkies <ksarkies@internode.on.net>
  *
@@ -17,12 +17,12 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/timer.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/stm32/dac.h>
-#include <libopencm3/stm32/dma.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/timer.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/stm32/dac.h>
+#include <unicore-mx/stm32/dma.h>
 
 /* Timer 2 count period, 16 microseconds for a 72MHz APB2 clock */
 #define PERIOD 1152

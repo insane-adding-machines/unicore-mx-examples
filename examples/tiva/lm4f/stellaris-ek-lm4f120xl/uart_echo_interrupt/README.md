@@ -1,6 +1,6 @@
 # README
 
-This example demonstrates the ease of setting up the UART with libopencm3, and
+This example demonstrates the ease of setting up the UART with unicore-mx, and
 using UART interrupts. UART echo is achieved by echoing back received characters
 from within the interrupt service routine. This has the advantage over using
 blocking reads and writes that the main program loop is freed for other tasks.

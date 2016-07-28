@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2016 Alexandru Gagniuc <mr.nuke.me@gmail.com>
  *
@@ -19,10 +19,10 @@
 
 #include "hd44780-lcd-printf.h"
 
-#include <libopencm3/lm4f/systemcontrol.h>
-#include <libopencm3/lm4f/gpio.h>
-#include <libopencm3/lm4f/uart.h>
-#include <libopencm3/lm4f/nvic.h>
+#include <unicore-mx/lm4f/systemcontrol.h>
+#include <unicore-mx/lm4f/gpio.h>
+#include <unicore-mx/lm4f/uart.h>
+#include <unicore-mx/lm4f/nvic.h>
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -113,7 +113,7 @@ void uart_printf(const char *format, ...)
 
 /*
  * uart0_isr is declared as a weak function. When we override it here, the
- * libopencm3 build system takes care that it becomes our UART0 ISR.
+ * unicore-mx build system takes care that it becomes our UART0 ISR.
  */
 void uart0_isr(void)
 {

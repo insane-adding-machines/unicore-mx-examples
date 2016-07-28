@@ -8,7 +8,7 @@ http://www.st.com/web/catalog/tools/FM116/SC959/SS1532/PF259090
 
 # Chuck McManis README
 
-These examples are designed to demonstrate the use of libopencm3
+These examples are designed to demonstrate the use of unicore-mx
 with the STM32F4Discovery-DISCO board. This board has a 2.2"
 TFT LCD touchscreen on it, a MEMS gyroscope, and 8MB of SDRAM.
 

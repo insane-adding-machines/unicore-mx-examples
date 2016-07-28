@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2011 Gareth McMullin <gareth@blacksphere.co.nz>
  * Copyright (C) 2012-2013 Alexandru Gagniuc <mr.nuke.me@gmail.com>
@@ -27,11 +27,11 @@
  * Green controlled by PF3
  * Blue controlled by PF2
  */
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/lm4f/systemcontrol.h>
-#include <libopencm3/lm4f/rcc.h>
-#include <libopencm3/lm4f/gpio.h>
-#include <libopencm3/lm4f/nvic.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/lm4f/systemcontrol.h>
+#include <unicore-mx/lm4f/rcc.h>
+#include <unicore-mx/lm4f/gpio.h>
+#include <unicore-mx/lm4f/nvic.h>
 
 #include <stdbool.h>
 #include <stdio.h>

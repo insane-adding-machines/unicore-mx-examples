@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2013 Alexandru Gagniuc <mr.nuke.me@gmail.com>
  *
@@ -23,11 +23,11 @@
  * Establishes a basic USB devices with interrupt-driven and polled IN and OUT
  * bulk endpoints.
  */
-#include <libopencm3/lm4f/rcc.h>
-#include <libopencm3/lm4f/gpio.h>
-#include <libopencm3/lm4f/nvic.h>
-#include <libopencm3/usb/usbd.h>
-#include <libopencm3/lm4f/usb.h>
+#include <unicore-mx/lm4f/rcc.h>
+#include <unicore-mx/lm4f/gpio.h>
+#include <unicore-mx/lm4f/nvic.h>
+#include <unicore-mx/usbd/usbd.h>
+#include <unicore-mx/lm4f/usb.h>
 
 #include<stdio.h>
 
@@ -182,7 +182,7 @@ static uint8_t usbd_control_buffer[128];
 static uint8_t config_set = 0;
 
 static const char *usb_strings[] = {
-	"libopencm3",
+	"unicore-mx",
 	"usb_dev_bulk",
 	"none",
 	"DEMO",
@@ -420,7 +420,7 @@ void gpiof_isr(void)
  * = Debug module
  * ---------------------------------------------------------------------------*/
 
-#include <libopencm3/lm4f/uart.h>
+#include <unicore-mx/lm4f/uart.h>
 #include <errno.h>
 
 /*

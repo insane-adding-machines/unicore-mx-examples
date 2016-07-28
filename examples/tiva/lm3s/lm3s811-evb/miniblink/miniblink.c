@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2011 Gareth McMullin <gareth@blacksphere.co.nz>
  *
@@ -17,8 +17,8 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/lm3s/systemcontrol.h>
-#include <libopencm3/lm3s/gpio.h>
+#include <unicore-mx/lm3s/systemcontrol.h>
+#include <unicore-mx/lm3s/gpio.h>
 
 static void gpio_setup(void)
 {

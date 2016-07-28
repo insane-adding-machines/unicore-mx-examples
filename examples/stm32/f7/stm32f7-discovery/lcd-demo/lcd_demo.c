@@ -1,14 +1,14 @@
 /* Includes ------------------------------------------------------------------*/
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/ltdc.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/ltdc.h>
 #include "RGB_565_480_272.h"
 #include "rk043fn48h.h"
 
 /* Private function prototypes -----------------------------------------------*/
-static void lcd_config(void); 
-static void lcd_pinmux(void); 
-static void lcd_clock(void); 
+static void lcd_config(void);
+static void lcd_pinmux(void);
+static void lcd_clock(void);
 static void lcd_config_layer(void);
 
 /* Private functions ---------------------------------------------------------*/
@@ -55,7 +55,7 @@ void lcd_pinmux(void)
     gpio_mode_setup(GPIOK, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO0 | GPIO1 | GPIO2 | GPIO4 | GPIO5 | GPIO6 | GPIO7);
     gpio_set_output_options(GPIOK, GPIO_OTYPE_PP, GPIO_OSPEED_100MHZ, GPIO0 | GPIO1 | GPIO2 | GPIO4 | GPIO5 | GPIO6 | GPIO7);
     gpio_set_af(GPIOK, GPIO_AF14, GPIO0 | GPIO1 | GPIO2 | GPIO4 | GPIO5 | GPIO6 | GPIO7);
-  
+
     /* LCD_DISP GPIO configuration */
     gpio_mode_setup(GPIOI, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO12);
     gpio_set_output_options(GPIOI, GPIO_OTYPE_PP, GPIO_OSPEED_100MHZ, GPIO12);
@@ -72,8 +72,8 @@ void lcd_pinmux(void)
 }
 
 static void lcd_config_layer(void)
-{   
-  /* Windowing configuration */ 
+{
+  /* Windowing configuration */
   ltdc_setup_windowing(LTDC_LAYER_2, 480, 272);
 
   /* Specifies the pixel format */
@@ -110,19 +110,19 @@ static void lcd_config_layer(void)
   *        2) Configure the LTDC Timing and Polarity
   *        3) Configure the LTDC Layer 1 :
   *           - The frame buffer is located at FLASH memory
-  *           - The Layer size configuration : 480x272                      
+  *           - The Layer size configuration : 480x272
   * @retval
   *  None
   */
 static void lcd_config(void)
-{ 
+{
   /* LTDC Initialization */
   ltdc_ctrl_disable(LTDC_GCR_HSPOL_ACTIVE_HIGH); /* Active Low Horizontal Sync */
   ltdc_ctrl_disable(LTDC_GCR_VSPOL_ACTIVE_HIGH); /* Active Low Vertical Sync */
   ltdc_ctrl_disable(LTDC_GCR_DEPOL_ACTIVE_HIGH); /* Active Low Date Enable */
   ltdc_ctrl_disable(LTDC_GCR_PCPOL_ACTIVE_HIGH); /* Active Low Pixel Clock */
-  
-  /* Configure the LTDC */  
+
+  /* Configure the LTDC */
   ltdc_set_tft_sync_timings(RK043FN48H_HSYNC, RK043FN48H_VSYNC,
 			                RK043FN48H_HBP,   RK043FN48H_VBP,
 			                RK043FN48H_WIDTH, RK043FN48H_HEIGHT,
@@ -130,7 +130,7 @@ static void lcd_config(void)
 
   ltdc_set_background_color(0, 0, 0);
   ltdc_ctrl_enable(LTDC_GCR_LTDC_ENABLE);
-  
+
   /* Configure the Layer*/
   lcd_config_layer();
 
@@ -166,7 +166,7 @@ static void lcd_clock(void)
 int main(void)
 {
   lcd_pinmux();
-  lcd_clock(); 
+  lcd_clock();
   lcd_config(); /* Configure LCD : Only one layer is used */
 
   while (1) {}

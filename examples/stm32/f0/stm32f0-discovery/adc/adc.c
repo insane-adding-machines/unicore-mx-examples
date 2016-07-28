@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
  * Copyright (C) 2011 Stephen Caudle <scaudle@doceme.com>
@@ -21,10 +21,10 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/adc.h>
-#include <libopencm3/stm32/usart.h>
-#include <libopencm3/stm32/gpio.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/adc.h>
+#include <unicore-mx/stm32/usart.h>
+#include <unicore-mx/stm32/gpio.h>
 
 uint8_t channel_array[] = { 1, 1, ADC_CHANNEL_TEMP};
 

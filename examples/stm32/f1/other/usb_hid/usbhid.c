@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2010 Gareth McMullin <gareth@blacksphere.co.nz>
  *
@@ -18,19 +18,19 @@
  */
 
 #include <stdlib.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/cm3/systick.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/usb/usbd.h>
-#include <libopencm3/usb/hid.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/cm3/systick.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/usbd/usbd.h>
+#include <unicore-mx/usb/hid.h>
 
 /* Define this to include the DFU APP interface. */
 #define INCLUDE_DFU_INTERFACE
 
 #ifdef INCLUDE_DFU_INTERFACE
-#include <libopencm3/cm3/scb.h>
-#include <libopencm3/usb/dfu.h>
+#include <unicore-mx/cm3/scb.h>
+#include <unicore-mx/usb/dfu.h>
 #endif
 
 static usbd_device *usbd_dev;

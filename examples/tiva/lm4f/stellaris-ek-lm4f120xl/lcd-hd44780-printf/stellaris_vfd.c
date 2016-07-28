@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2016 Alexandru Gagniuc <mr.nuke.me@gmail.com>
  *
@@ -19,8 +19,8 @@
 
 #include "hd44780-gpio.h"
 
-#include <libopencm3/lm4f/systemcontrol.h>
-#include <libopencm3/lm4f/gpio.h>
+#include <unicore-mx/lm4f/systemcontrol.h>
+#include <unicore-mx/lm4f/gpio.h>
 
 enum {
 	DISP_FNC	= GPIO4,

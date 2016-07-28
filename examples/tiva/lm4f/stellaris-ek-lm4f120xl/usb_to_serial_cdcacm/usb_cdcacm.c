@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2010 Gareth McMullin <gareth@blacksphere.co.nz>
  * Copyright (C) 2013 Alexandru Gagniuc <mr.nuke.me@gmail.com>
@@ -21,12 +21,12 @@
 #include "usb_to_serial_cdcacm.h"
 
 #include <stdlib.h>
-#include <libopencm3/usb/usbd.h>
-#include <libopencm3/usb/cdc.h>
-#include <libopencm3/lm4f/rcc.h>
-#include <libopencm3/cm3/scb.h>
-#include <libopencm3/lm4f/nvic.h>
-#include <libopencm3/lm4f/usb.h>
+#include <unicore-mx/usbd/usbd.h>
+#include <unicore-mx/usb/cdc.h>
+#include <unicore-mx/lm4f/rcc.h>
+#include <unicore-mx/cm3/scb.h>
+#include <unicore-mx/lm4f/nvic.h>
+#include <unicore-mx/lm4f/usb.h>
 
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
@@ -163,7 +163,7 @@ static const struct usb_config_descriptor config = {
 };
 
 static const char *usb_strings[] = {
-	"libopencm3",
+	"unicore-mx",
 	"usb_to_serial_cdcacm",
 	"none",
 	"DEMO",

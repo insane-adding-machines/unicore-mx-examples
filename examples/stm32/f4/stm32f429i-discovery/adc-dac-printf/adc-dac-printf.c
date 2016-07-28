@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2014 Karl Palsson <karlp@tweak.net.au>
  * Copyright (C) 2015 Piotr Esden-Tempski <piotr@esden.nety>
@@ -21,12 +21,12 @@
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/stm32/adc.h>
-#include <libopencm3/stm32/dac.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/usart.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/stm32/adc.h>
+#include <unicore-mx/stm32/dac.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/usart.h>
 
 #define LED_DISCO_GREEN_PORT GPIOG
 #define LED_DISCO_GREEN_PIN GPIO13

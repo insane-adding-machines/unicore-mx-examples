@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2013 Weston Schmidt <weston_schmidt@alumni.purdue.edu>
  * Copyright (C) 2013 Pavol Rusnak <stick@gk2.sk>
@@ -20,10 +20,10 @@
 
 #include <stdlib.h>
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/usb/usbd.h>
-#include <libopencm3/usb/msc.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/usbd/usbd.h>
+#include <unicore-mx/usbd/msc.h>
 
 #include "ramdisk.h"
 

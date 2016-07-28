@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2013 Chuck McManis <cmcmanis@mcmanis.com>
  *
@@ -28,13 +28,13 @@
 
 #include <stdint.h>
 #include <setjmp.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/usart.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/stm32/iwdg.h>
-#include <libopencm3/cm3/scb.h>
-#include <libopencm3/cm3/cortex.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/usart.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/stm32/iwdg.h>
+#include <unicore-mx/cm3/scb.h>
+#include <unicore-mx/cm3/cortex.h>
 #include "console.h"
 
 /*
@@ -60,7 +60,7 @@ volatile int recv_ndx_cur;		/* Next place to read */
 
 /* For interrupt handling we add a new function which is called
  * when recieve interrupts happen. The name (usart1_isr) is created
- * by the irq.json file in libopencm3 calling this interrupt for
+ * by the irq.json file in unicore-mx calling this interrupt for
  * USART2 'usart2', adding the suffix '_isr', and then weakly binding
  * it to the 'do nothing' interrupt function in vec.c.
  *
@@ -222,7 +222,7 @@ void console_setup(void)
 	 */
 	rcc_periph_clock_enable(RCC_USART1);
 
-	/* Set up USART/UART parameters using the libopencm3 helper functions */
+	/* Set up USART/UART parameters using the unicore-mx helper functions */
 	usart_set_baudrate(CONSOLE_UART, 115200);
 	usart_set_databits(CONSOLE_UART, 8);
 	usart_set_stopbits(CONSOLE_UART, USART_STOPBITS_1);

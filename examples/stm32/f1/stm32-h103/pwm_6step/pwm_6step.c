@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2011 Piotr Esden-Tempski <piotr@esden.net>
  *
@@ -17,11 +17,11 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/timer.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/stm32/exti.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/timer.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/stm32/exti.h>
 
 #define FALLING 0
 #define RISING 1

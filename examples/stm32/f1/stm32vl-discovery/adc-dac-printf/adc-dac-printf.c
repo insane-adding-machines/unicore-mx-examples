@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2013 Karl Palsson <karlp@tweak.net.au>
  *
@@ -21,12 +21,12 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/stm32/dac.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/usart.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/adc.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/stm32/dac.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/usart.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/adc.h>
 
 #define LED_DISCOVERY_USER_PORT	GPIOC
 #define LED_DISCOVERY_USER_PIN	GPIO8
@@ -146,7 +146,7 @@ int main(void)
 	dac_setup();
 	gpio_set_mode(LED_DISCOVERY_USER_PORT, GPIO_MODE_OUTPUT_2_MHZ,
 		GPIO_CNF_OUTPUT_PUSHPULL, LED_DISCOVERY_USER_PIN);
-	
+
 	while (1) {
 		uint16_t input_adc0 = read_adc_naiive(0);
 		uint16_t target = input_adc0 / 2;

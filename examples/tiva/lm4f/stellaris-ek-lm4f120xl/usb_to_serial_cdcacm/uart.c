@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2012-2013 Alexandru Gagniuc <mr.nuke.me@gmail.com>
  *
@@ -37,9 +37,9 @@
 
 #include "usb_to_serial_cdcacm.h"
 
-#include <libopencm3/lm4f/rcc.h>
-#include <libopencm3/lm4f/uart.h>
-#include <libopencm3/lm4f/nvic.h>
+#include <unicore-mx/lm4f/rcc.h>
+#include <unicore-mx/lm4f/uart.h>
+#include <unicore-mx/lm4f/nvic.h>
 
 static void uart_ctl_line_setup(void)
 {

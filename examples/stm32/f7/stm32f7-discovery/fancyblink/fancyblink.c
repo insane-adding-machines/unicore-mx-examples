@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
  * Copyright (C) 2011 Stephen Caudle <scaudle@doceme.com>
@@ -18,10 +18,10 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
 
-static void clock_setup(void) 
+static void clock_setup(void)
 {
 	rcc_clock_setup_hse_3v3(&hse_25mhz_3v3[CLOCK_3V3_216MHZ]);
 	rcc_periph_clock_enable(RCC_GPIOI);
@@ -36,7 +36,7 @@ static void gpio_setup(void)
 int main(void)
 {
 	int i;
-	
+
 	clock_setup();
 	gpio_setup();
 

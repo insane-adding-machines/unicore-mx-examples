@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
  * Copyright (C) 2011 Stephen Caudle <scaudle@doceme.com>
@@ -25,9 +25,9 @@
 MEMORY
 {
 	rom (rx) : ORIGIN = 0x08000000, LENGTH = 2048K
-	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 256K 
+	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 256K
 }
 
 /* Include the common ld script. */
-INCLUDE libopencm3_stm32f4.ld
+INCLUDE libucmx_stm32f4.ld
 

@@ -1,5 +1,5 @@
 #
-# This file is part of the libopencm3 project.
+# This file is part of the unicore-mx project.
 #
 # This library is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by

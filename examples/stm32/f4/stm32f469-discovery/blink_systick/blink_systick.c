@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
  * Copyright (C) 2011 Damjan Marion <damjan.marion@gmail.com>
@@ -23,10 +23,10 @@
 
 /* This version derived from fancy blink */
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/cm3/systick.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/cm3/systick.h>
 
 /* monotonically increasing number of milliseconds from reset
  * overflows every 49 days if you're wondering

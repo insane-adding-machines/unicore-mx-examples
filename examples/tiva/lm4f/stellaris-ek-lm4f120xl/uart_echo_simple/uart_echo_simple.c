@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2011 Gareth McMullin <gareth@blacksphere.co.nz>
  * Copyright (C) 2012 Alexandru Gagniuc <mr.nuke.me@gmail.com>
@@ -18,9 +18,9 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/lm4f/systemcontrol.h>
-#include <libopencm3/lm4f/gpio.h>
-#include <libopencm3/lm4f/uart.h>
+#include <unicore-mx/lm4f/systemcontrol.h>
+#include <unicore-mx/lm4f/gpio.h>
+#include <unicore-mx/lm4f/uart.h>
 
 static void uart_setup(void)
 {

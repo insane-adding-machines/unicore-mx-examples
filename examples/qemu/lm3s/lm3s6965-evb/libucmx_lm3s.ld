@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
  *
@@ -17,7 +17,7 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Generic linker script for LM3S targets using libopencm3. */
+/* Generic linker script for LM3S targets using unicore-mx. */
 
 /* Memory regions must be defined in the ld script which includes this one. */
 
@@ -86,6 +86,7 @@ SECTIONS
 	_data_loadaddr = LOADADDR(.data);
 
 	.bss : {
+		_bss = .;
 		*(.bss*)	/* Read-write zero initialized data */
 		*(COMMON)
 		. = ALIGN(4);

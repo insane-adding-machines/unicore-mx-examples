@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2012 Alexandru Gagniuc <mr.nuke.me@gmail.com>
  *
@@ -22,9 +22,9 @@
 #ifndef __STELLARIS_EK_LM4F120XL_USB_TO_SERIAL_CDCACM_H
 #define __STELLARIS_EK_LM4F120XL_USB_TO_SERIAL_CDCACM_H
 
-#include <libopencm3/cm3/common.h>
-#include <libopencm3/lm4f/gpio.h>
-#include <libopencm3/usb/cdc.h>
+#include <unicore-mx/cm3/common.h>
+#include <unicore-mx/lm4f/gpio.h>
+#include <unicore-mx/usb/cdc.h>
 
 /* =============================================================================
  * UART control

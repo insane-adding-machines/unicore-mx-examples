@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2014-2015 Chuck McManis <cmcmanis@mcmanis.com>
  *
@@ -22,10 +22,10 @@
  */
 #include <stdint.h>
 #include <stdio.h>
-#include <libopencm3/stm32/spi.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/cm3/nvic.h>
+#include <unicore-mx/stm32/spi.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/cm3/nvic.h>
 #include "clock.h"
 #include "sdram.h"
 #include "lcd.h"

@@ -1,5 +1,5 @@
 ##
-## This file is part of the libopencm3 project.
+## This file is part of the unicore-mx project.
 ##
 ## Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
 ##
@@ -19,13 +19,13 @@
 
 BINARY = usart-semihosting
 
-LDSCRIPT = $(OPENCM3_DIR)/lib/stm32/l1/stm32l15xxb.ld
+LDSCRIPT = $(UCMX_DIR)/lib/stm32/l1/stm32l15xxb.ld
 
 # To disable, run "make ENABLE_SEMIHOSTING=0" or comment next line out
 ENABLE_SEMIHOSTING ?= 1
 
 ifeq ($(ENABLE_SEMIHOSTING),1)
-LDFLAGS		+= --specs=rdimon.specs 
+LDFLAGS		+= --specs=rdimon.specs
 LDLIBS		+= -lrdimon
 DEFS		+= -DENABLE_SEMIHOSTING=1
 endif

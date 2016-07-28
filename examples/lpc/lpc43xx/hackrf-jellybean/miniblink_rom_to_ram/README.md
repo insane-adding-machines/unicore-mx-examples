@@ -1,6 +1,6 @@
 # README
 
-This is the smallest-possible example program using libopencm3.
+This is the smallest-possible example program using unicore-mx.
 
 It's intended for the Jellybean development board from the
 [HackRF project](https://github.com/mossmann/hackrf)

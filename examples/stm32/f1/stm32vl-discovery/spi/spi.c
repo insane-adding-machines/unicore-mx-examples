@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
  * Copyright (C) 2013 Stephen Dwyer <scdwyer@ualberta.ca>
@@ -19,10 +19,10 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/usart.h>
-#include <libopencm3/stm32/spi.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/usart.h>
+#include <unicore-mx/stm32/spi.h>
 #include <stdio.h>
 #include <errno.h>
 
@@ -154,7 +154,7 @@ int main(void)
 		printf("    SPI Received Byte: %i\r\n", rx_value);
 
 		counter++;
-		
+
 	}
 
 	return 0;

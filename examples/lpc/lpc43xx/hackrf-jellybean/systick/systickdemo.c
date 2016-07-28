@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2012 Benjamin Vernoux <titanmkd@gmail.com>
  *
@@ -17,12 +17,12 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/lpc43xx/gpio.h>
-#include <libopencm3/lpc43xx/scu.h>
-#include <libopencm3/lpc43xx/cgu.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/cm3/systick.h>
-#include <libopencm3/cm3/scs.h>
+#include <unicore-mx/lpc43xx/gpio.h>
+#include <unicore-mx/lpc43xx/scu.h>
+#include <unicore-mx/lpc43xx/cgu.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/cm3/systick.h>
+#include <unicore-mx/cm3/scs.h>
 
 #include "../jellybean_conf.h"
 

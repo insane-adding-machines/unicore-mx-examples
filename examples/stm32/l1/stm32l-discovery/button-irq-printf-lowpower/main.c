@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2012 Karl Palsson <karlp@tweak.net.au>
  *
@@ -20,17 +20,17 @@
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/cm3/scb.h>
-#include <libopencm3/stm32/dbgmcu.h>
-#include <libopencm3/stm32/exti.h>
-#include <libopencm3/stm32/flash.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/pwr.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/rtc.h>
-#include <libopencm3/stm32/timer.h>
-#include <libopencm3/stm32/usart.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/cm3/scb.h>
+#include <unicore-mx/stm32/dbgmcu.h>
+#include <unicore-mx/stm32/exti.h>
+#include <unicore-mx/stm32/flash.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/pwr.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/rtc.h>
+#include <unicore-mx/stm32/timer.h>
+#include <unicore-mx/stm32/usart.h>
 
 #include "syscfg.h"
 

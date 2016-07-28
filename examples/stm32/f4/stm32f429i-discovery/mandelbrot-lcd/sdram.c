@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2014-2015 Chuck McManis <cmcmanis@mcmanis.com>
  *
@@ -22,9 +22,9 @@
  * sdram example.
  */
 #include <stdint.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/fsmc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/fsmc.h>
 #include "clock.h"
 #include "sdram.h"
 

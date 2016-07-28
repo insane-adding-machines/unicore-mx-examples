@@ -1,5 +1,5 @@
 ##
-## This file is part of the libopencm3 project.
+## This file is part of the unicore-mx project.
 ##
 ## Copyright (C) 2014 Nikolay Merinov <nikolay.merinov@member.fsf.org>
 ##
@@ -19,7 +19,7 @@
 
 BINARY = lcd-hello
 
-LDSCRIPT = $(OPENCM3_DIR)/lib/stm32/l1/stm32l15xxb.ld
+LDSCRIPT = $(UCMX_DIR)/lib/stm32/l1/stm32l15xxb.ld
 
 include ../../Makefile.include
 

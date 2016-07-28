@@ -1,7 +1,7 @@
 Examples for the STM32F469-Discovery board
 ------------------------------------------
 
-This directory contains various examples which use libopencm3 and run on
+This directory contains various examples which use unicore-mx and run on
 the [ST Micro STM32F469-Discovery][disco] board. This board has a number
 of on board peripherals such as a MicroSD card slot, USB OTG connector,
 MEMS microphones, 800 x 450 touch screen graphics, and four user LEDs.

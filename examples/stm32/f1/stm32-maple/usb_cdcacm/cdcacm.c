@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2010 Gareth McMullin <gareth@blacksphere.co.nz>
  *
@@ -18,11 +18,11 @@
  */
 
 #include <stdlib.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/usb/usbd.h>
-#include <libopencm3/usb/cdc.h>
-#include <libopencm3/cm3/scb.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/usbd/usbd.h>
+#include <unicore-mx/usb/cdc.h>
+#include <unicore-mx/cm3/scb.h>
 
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,

@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2016 Daniele Lacamera <root@danielinux.net>
  *
@@ -16,14 +16,14 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/cm3/systick.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/cm3/systick.h>
 #include <libopencmsis/core_cm3.h>
 
 
 /* LM3S Specifics, usart and RCC */
-#include <libopencm3/lm3s/rcc.h>
-#include <libopencm3/lm3s/usart.h>
+#include <unicore-mx/lm3s/rcc.h>
+#include <unicore-mx/lm3s/usart.h>
 
 static volatile uint32_t jiffies = 0u;
 

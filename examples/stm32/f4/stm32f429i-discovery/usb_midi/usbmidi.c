@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2014 Daniel Thompson <daniel@redfelineninja.org.uk>
  * Copyright (C) 2015 Piotr Esden-Tempski <piotr@esden.net>
@@ -19,13 +19,13 @@
  */
 
 #include <stdlib.h>
-#include <libopencm3/usb/usbd.h>
-#include <libopencm3/usb/audio.h>
-#include <libopencm3/usb/midi.h>
-#include <libopencm3/cm3/scb.h>
-#include <libopencm3/stm32/desig.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
+#include <unicore-mx/usbd/usbd.h>
+#include <unicore-mx/usb/audio.h>
+#include <unicore-mx/usb/midi.h>
+#include <unicore-mx/cm3/scb.h>
+#include <unicore-mx/stm32/desig.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
 
 /*
  * All references in this file come from Universal Serial Bus Device Class
@@ -272,7 +272,7 @@ static const struct usb_config_descriptor config = {
 static char usb_serial_number[25]; /* 12 bytes of desig and a \0 */
 
 static const char *usb_strings[] = {
-	"libopencm3.org",
+	"unicore-mx",
 	"MIDI demo",
 	usb_serial_number
 };

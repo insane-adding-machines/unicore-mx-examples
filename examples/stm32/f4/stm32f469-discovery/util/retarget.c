@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2015 Chuck McManis <cmcmanis@mcmanis.com>
  *
@@ -29,7 +29,7 @@
 #include "../util/console.h"
 
 #ifndef NULL
-#define NULL	0	
+#define NULL	0
 #endif
 
 #define BUFLEN 127
@@ -50,15 +50,15 @@ int _read (int fd, char *ptr, int len);
 static char buf[BUFLEN+1] = {0};
 static char *next_char;
 
-/* 
+/*
  * Called by libc stdio functions
  */
-int 
+int
 _write (int fd, char *ptr, int len)
 {
 	int i = 0;
 
-	/* 
+	/*
 	 * Write "len" of char from "ptr" to file id "fd"
 	 * Return number of char written.
 	 */
@@ -88,7 +88,7 @@ _write (int fd, char *ptr, int len)
 /*
  * Depending on the implementation, this function can call
  * with a buffer length of 1 to 1024. However it does no
- * editing on console reading. So, the console_gets code 
+ * editing on console reading. So, the console_gets code
  * implements a simple line editing input style.
  */
 int
@@ -118,7 +118,7 @@ _read (int fd, char *ptr, int len)
 	return my_len; // return the length we got
 }
 
-/* SystemInit will be called before main 
+/* SystemInit will be called before main
  * This works because we tell GCC that it is a constructor
  * which means "run this before main is invoked".
  */

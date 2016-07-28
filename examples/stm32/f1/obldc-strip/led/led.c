@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2012 Piotr Esden-Tempski <piotr@esden.net>
  *
@@ -17,8 +17,8 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
 
 static void clock_setup(void)
 {
@@ -37,11 +37,11 @@ static void gpio_setup(void)
 
 	/* Configure PB4 as GPIO. */
 	AFIO_MAPR |= AFIO_MAPR_SWJ_CFG_FULL_SWJ_NO_JNTRST;
-	
+
 	/* Set GPIO4 and 5 (in GPIO port B) to 'output push-pull'. */
 	gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ,
 		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO4 | GPIO5);
-	
+
 }
 
 int main(void)

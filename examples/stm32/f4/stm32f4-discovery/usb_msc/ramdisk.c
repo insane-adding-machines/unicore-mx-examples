@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2013 Andrzej Surowiec <emeryth@gmail.com>
  * Copyright (C) 2013 Pavol Rusnak <stick@gk2.sk>

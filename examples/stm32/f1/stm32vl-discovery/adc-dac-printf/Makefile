@@ -1,5 +1,5 @@
 ##
-## This file is part of the libopencm3 project.
+## This file is part of the unicore-mx project.
 ##
 ## Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
 ##
@@ -18,7 +18,7 @@
 ##
 
 BINARY = adc-dac-printf
-LDSCRIPT = $(OPENCM3_DIR)/lib/stm32/f1/stm32f100xb.ld
+LDSCRIPT = $(UCMX_DIR)/lib/stm32/f1/stm32f100xb.ld
 
 include ../../Makefile.include
 

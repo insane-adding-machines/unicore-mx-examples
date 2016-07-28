@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2016 Daniele Lacamera <root@danielinux.net>
  *
@@ -27,5 +27,5 @@ MEMORY
 }
 
 /* Include the common ld script. */
-INCLUDE libopencm3_lm3s.ld
+INCLUDE libucmx_lm3s.ld
 

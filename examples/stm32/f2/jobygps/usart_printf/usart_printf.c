@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>,
  * Copyright (C) 2011 Piotr Esden-Tempski <piotr@esden.net>
@@ -20,10 +20,10 @@
 
 #include <stdio.h>
 #include <errno.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/usart.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/usart.h>
+#include <unicore-mx/cm3/nvic.h>
+#include <unicore-mx/stm32/rcc.h>
 
 int _write(int file, char *ptr, int len);
 

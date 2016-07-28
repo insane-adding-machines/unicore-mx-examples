@@ -1,5 +1,5 @@
 /*
- * This file is part of the libopencm3 project.
+ * This file is part of the unicore-mx project.
  *
  * Copyright (C) 2010 Uwe Hermann <uwe@hermann-uwe.de>
  *
@@ -17,8 +17,8 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// #include <libopencm3/lpc13xx/rcc.h>
-#include <libopencm3/lpc13xx/gpio.h>
+// #include <unicore-mx/lpc13xx/rcc.h>
+#include <unicore-mx/lpc13xx/gpio.h>
 
 static void gpio_setup(void)
 {

@@ -1,5 +1,5 @@
 ##
-## This file is part of the libopencm3 project.
+## This file is part of the unicore-mx project.
 ##
 ## Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
 ##
@@ -34,7 +34,7 @@ Q := @
 MAKEFLAGS += --no-print-directory
 endif
 
-OPENCM3_DIR ?= $(realpath libopencm3)
+UCMX_DIR ?= $(realpath unicore-mx)
 EXAMPLE_RULES = elf
 
 all: build
@@ -54,9 +54,9 @@ images: build
 build: lib examples
 
 lib:
-	$(Q)if [ ! "`ls -A $(OPENCM3_DIR)`" ] ; then \
+	$(Q)if [ ! "`ls -A $(UCMX_DIR)`" ] ; then \
 		printf "######## ERROR ########\n"; \
-		printf "\tlibopencm3 is not initialized.\n"; \
+		printf "\tunicore-mx is not initialized.\n"; \
 		printf "\tPlease run:\n"; \
 		printf "\t$$ git submodule init\n"; \
 		printf "\t$$ git submodule update\n"; \
@@ -64,18 +64,18 @@ lib:
 		printf "######## ERROR ########\n"; \
 		exit 1; \
 		fi
-	$(Q)$(MAKE) -C $(OPENCM3_DIR)
+	$(Q)$(MAKE) -C $(UCMX_DIR)
 
 EXAMPLE_DIRS:=$(sort $(dir $(wildcard $(addsuffix /*/*/Makefile,$(addprefix examples/,$(TARGETS))))))
 $(EXAMPLE_DIRS): lib
 	@printf "  BUILD   $@\n";
-	$(Q)$(MAKE) --directory=$@ OPENCM3_DIR=$(OPENCM3_DIR) $(EXAMPLE_RULES)
+	$(Q)$(MAKE) --directory=$@ UCMX_DIR=$(UCMX_DIR) $(EXAMPLE_RULES)
 
 examples: $(EXAMPLE_DIRS)
 	$(Q)true
 
 clean: $(EXAMPLE_DIRS:=.clean) styleclean
-	$(Q)$(MAKE) -C libopencm3 clean
+	$(Q)$(MAKE) -C unicore-mx clean
 
 stylecheck: $(EXAMPLE_DIRS:=.stylecheck)
 styleclean: $(EXAMPLE_DIRS:=.styleclean)
@@ -84,14 +84,14 @@ styleclean: $(EXAMPLE_DIRS:=.styleclean)
 %.clean:
 	$(Q)if [ -d $* ]; then \
 		printf "  CLEAN   $*\n"; \
-		$(MAKE) -C $* clean OPENCM3_DIR=$(OPENCM3_DIR) || exit $?; \
+		$(MAKE) -C $* clean UCMX_DIR=$(UCMX_DIR) || exit $?; \
 	fi;
 
 %.styleclean:
-	$(Q)$(MAKE) -C $* styleclean OPENCM3_DIR=$(OPENCM3_DIR)
+	$(Q)$(MAKE) -C $* styleclean UCMX_DIR=$(UCMX_DIR)
 
 %.stylecheck:
-	$(Q)$(MAKE) -C $* stylecheck OPENCM3_DIR=$(OPENCM3_DIR)
+	$(Q)$(MAKE) -C $* stylecheck UCMX_DIR=$(UCMX_DIR)
 
 
 .PHONY: build lib examples $(EXAMPLE_DIRS) install clean stylecheck styleclean \

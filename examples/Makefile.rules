@@ -1,5 +1,5 @@
 ##
-## This file is part of the libopencm3 project.
+## This file is part of the unicore-mx project.
 ##
 ## Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
 ## Copyright (C) 2010 Piotr Esden-Tempski <piotr@esden.net>
@@ -52,28 +52,28 @@ LDSCRIPT	?= $(BINARY).ld
 OBJS		+= $(BINARY).o
 
 
-ifeq ($(strip $(OPENCM3_DIR)),)
+ifeq ($(strip $(UCMX_DIR)),)
 # user has not specified the library path, so we try to detect it
 
 # where we search for the library
-LIBPATHS := ./libopencm3 ../../../../libopencm3 ../../../../../libopencm3
+LIBPATHS := ./unicore-mx ../../../../unicore-mx ../../../../../unicore-mx
 
-OPENCM3_DIR := $(wildcard $(LIBPATHS:=/locm3.sublime-project))
-OPENCM3_DIR := $(firstword $(dir $(OPENCM3_DIR)))
+UCMX_DIR := $(wildcard $(LIBPATHS:=/ucmx.sublime-project))
+UCMX_DIR := $(firstword $(dir $(UCMX_DIR)))
 
-ifeq ($(strip $(OPENCM3_DIR)),)
-$(warning Cannot find libopencm3 library in the standard search paths.)
-$(error Please specify it through OPENCM3_DIR variable!)
+ifeq ($(strip $(UCMX_DIR)),)
+$(warning Cannot find unicore-mx library in the standard search paths.)
+$(error Please specify it through UCMX_DIR variable!)
 endif
 endif
 
 ifeq ($(V),1)
-$(info Using $(OPENCM3_DIR) path to library)
+$(info Using $(UCMX_DIR) path to library)
 endif
 
-INCLUDE_DIR	= $(OPENCM3_DIR)/include
-LIB_DIR		= $(OPENCM3_DIR)/lib
-SCRIPT_DIR	= $(OPENCM3_DIR)/scripts
+INCLUDE_DIR	= $(UCMX_DIR)/include
+LIB_DIR		= $(UCMX_DIR)/lib
+SCRIPT_DIR	= $(UCMX_DIR)/scripts
 
 ###############################################################################
 # C flags
