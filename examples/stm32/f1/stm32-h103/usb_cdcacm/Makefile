@@ -19,6 +19,10 @@
 
 BINARY = cdcacm
 
+VPATH += $(COMMON_DIR)/usb_cdcacm
+CPPFLAGS += -I$(COMMON_DIR)/usb_cdcacm
+OBJS = cdcacm-target.o
+
 LDSCRIPT = ../stm32-h103.ld
 
 include ../../Makefile.include

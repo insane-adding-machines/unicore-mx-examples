@@ -19,6 +19,10 @@
 
 BINARY = usbmidi
 
+VPATH += $(COMMON_DIR)/usb_midi
+CPPFLAGS += -I$(COMMON_DIR)/usb_midi
+OBJS = usbmidi-target.o
+
 LDSCRIPT = ../stm32f429i-discovery.ld
 
 include ../../Makefile.include

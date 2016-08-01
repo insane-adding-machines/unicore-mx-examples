@@ -24,7 +24,8 @@
 
 #include <unicore-mx/cm3/common.h>
 #include <unicore-mx/lm4f/gpio.h>
-#include <unicore-mx/usb/cdc.h>
+#include <unicore-mx/usb/class/cdc.h>
+#include <unicore-mx/usbd/usbd.h>
 
 /* =============================================================================
  * UART control
@@ -58,7 +59,8 @@ void cdcacm_send_data(uint8_t *buf, uint16_t len);
  * ---------------------------------------------------------------------------*/
 void glue_data_received_cb(uint8_t *buf, uint16_t len);
 void glue_set_line_state_cb(uint8_t dtr, uint8_t rts);
-int glue_set_line_coding_cb(uint32_t baud, uint8_t databits,
+enum usbd_control_result
+glue_set_line_coding_cb(uint32_t baud, uint8_t databits,
 			    enum usb_cdc_line_coding_bParityType cdc_parity,
 			    enum usb_cdc_line_coding_bCharFormat cdc_stopbits);
 void glue_send_data_cb(uint8_t *buf, uint16_t len);

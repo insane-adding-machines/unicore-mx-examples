@@ -19,6 +19,10 @@
 
 BINARY = usbdfu
 
+VPATH += $(COMMON_DIR)/usb_dfu
+CPPFLAGS += -I$(COMMON_DIR)/usb_dfu
+OBJS = usbdfu-target.o
+
 LDSCRIPT = ../lisa-m.ld
 
 include ../../Makefile.include

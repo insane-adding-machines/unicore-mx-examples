@@ -19,5 +19,10 @@
 
 BINARY = usbhid
 
+VPATH += $(COMMON_DIR)/usb_hid
+CLAGS += -DINCLUDE_DFU_INTERFACE
+CPPFLAGS += -I$(COMMON_DIR)/usb_hid
+OBJS = usbhid-target.o
+
 include ../../Makefile.include
 

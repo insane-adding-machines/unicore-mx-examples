@@ -19,6 +19,10 @@
 
 BINARY = usb_simple
 
+VPATH += $(COMMON_DIR)/usb_simple
+CPPFLAGS += -I$(COMMON_DIR)/usb_simple
+OBJS = usb_simple-target.o
+
 LDSCRIPT = ../stm32-h107.ld
 
 include ../../Makefile.include
