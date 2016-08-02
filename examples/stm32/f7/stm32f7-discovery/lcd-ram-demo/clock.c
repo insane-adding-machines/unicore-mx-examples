@@ -63,7 +63,7 @@ uint32_t mtime(void)
 void clock_setup(void)
 {
 	/* Base board frequency, set to 216MHz */
-	rcc_clock_setup_hse_3v3(&hse_25mhz_3v3[CLOCK_3V3_216MHZ]);
+	rcc_clock_setup_hse_3v3(&hse_25mhz_3v3);
 
 	/* clock rate / 216000 to get 1mS interrupt rate */
 	systick_set_reload(216000);
