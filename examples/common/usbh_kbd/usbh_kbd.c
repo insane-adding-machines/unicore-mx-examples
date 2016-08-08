@@ -480,7 +480,7 @@ int main(void)
 
 		last = now;
 
-		usbh_kbd_before_poll();
+		usbh_kbd_after_poll();
 	}
 
 	return 0;
