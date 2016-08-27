@@ -23,7 +23,6 @@
 #include <unicore-mx/stm32/gpio.h>
 #include <unicore-mx/usbd/usbd.h>
 #include <unicore-mx/usb/class/cdc.h>
-#include <unicore-mx/usbd/misc/string.h>
 
 /*
  * This notification endpoint isn't implemented. According to CDC spec its
@@ -138,6 +137,20 @@ static const struct usb_interface ifaces[] = {
   }
 };
 
+static const uint8_t *usb_strings_ascii[] = {
+  (uint8_t *) "Black Sphere Technologies",
+  (uint8_t *) "CDC-ACM Demo",
+  (uint8_t *) "DEMO",
+};
+
+const struct usb_string_utf8_data usb_strings[] = {{
+	.data = usb_strings_ascii,
+	.count = 3,
+	.lang_id = USB_LANGID_ENGLISH_UNITED_STATES
+}, {
+	.data = NULL
+}};
+
 static const struct usb_config_descriptor config = {
   .bLength = USB_DT_CONFIGURATION_SIZE,
   .bDescriptorType = USB_DT_CONFIGURATION,
@@ -148,6 +161,7 @@ static const struct usb_config_descriptor config = {
   .bmAttributes = 0x80,
   .bMaxPower = 0x32,
   .interface = ifaces,
+  .string = usb_strings
 };
 
 static const struct usb_device_descriptor dev = {
@@ -167,19 +181,8 @@ static const struct usb_device_descriptor dev = {
   .bNumConfigurations = 1,
 
   .config = &config
+  .string = usb_strings
 };
-
-static const char *usb_strings_ascii[] = {
-  "Black Sphere Technologies",
-  "CDC-ACM Demo",
-  "DEMO",
-};
-
-static int usb_strings(usbd_device *usbd_dev, struct usbd_get_string_arg *arg)
-{
-	(void)usbd_dev;
-	return usbd_handle_string_ascii(arg, usb_strings_ascii, 3);
-}
 
 /* Buffer to be used for control requests. */
 uint8_t usbd_control_buffer[128];
@@ -192,11 +195,11 @@ cdcacm_control_request(usbd_device *usbd_dev, struct usbd_control_arg *arg)
   const uint8_t bmReqMask = USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT;
   const uint8_t bmReqVal = USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE;
 
-  if ((arg->setup.bmRequestType & bmReqMask) != bmReqVal) {
+  if ((arg->setup->bmRequestType & bmReqMask) != bmReqVal) {
     return USBD_REQ_NEXT;
   }
 
-  switch(arg->setup.bRequest) {
+  switch(arg->setup->bRequest) {
   case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
     /*
      * This Linux cdc_acm driver requires this to be implemented
@@ -212,7 +215,7 @@ cdcacm_control_request(usbd_device *usbd_dev, struct usbd_control_arg *arg)
     notif->wValue = 0;
     notif->wIndex = 0;
     notif->wLength = 2;
-    local_buf[8] = arg->setup.wValue & 3;
+    local_buf[8] = arg->setup->wValue & 3;
     local_buf[9] = 0;
     // usbd_ep_write_packet(0x83, buf, 10);
     return USBD_REQ_HANDLED;
@@ -262,7 +265,6 @@ int main(void)
 		       usbd_control_buffer,
 		       sizeof(usbd_control_buffer));
   usbd_register_set_config_callback(usbd_dev, cdcacm_set_config);
-  usbd_register_get_string_callback(usbd_dev, usb_strings);
   usbd_register_control_callback(usbd_dev, cdcacm_control_request);
 
   while (1) {

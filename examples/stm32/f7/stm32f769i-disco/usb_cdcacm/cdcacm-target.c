@@ -21,16 +21,15 @@
 #include <unicore-mx/stm32/rcc.h>
 #include <unicore-mx/stm32/gpio.h>
 #include <unicore-mx/usbd/usbd.h>
-#include <unicore-mx/stm32/otg_fs.h>
+#include <unicore-mx/stm32/usart.h>
+#include <unicore-mx/stm32/otg_hs.h>
 #include <unicore-mx/usb/class/cdc.h>
 #include <unicore-mx/cm3/scb.h>
 #include "cdcacm-target.h"
 
-/* Speed selection only, OTG_HS has External PHY */
-/* #define USE_OTG_HS */
+/* Speed selection only, External PHY only */
 /* #define SHOW_HIGH_SPEED_DEMO */
 
-#if defined(USE_OTG_HS)
 static void ulpi_pins(uint32_t gpioport, uint16_t gpiopins)
 {
 	gpio_mode_setup(gpioport, GPIO_MODE_AF, GPIO_PUPD_NONE, gpiopins);
@@ -40,16 +39,19 @@ static void ulpi_pins(uint32_t gpioport, uint16_t gpiopins)
 
 void cdcacm_target_init(void)
 {
+	/* Base board frequency, set to 216MHz */
 	rcc_clock_setup_hse_3v3(&rcc_hse_25mhz_3v3);
 
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_GPIOB);
 	rcc_periph_clock_enable(RCC_GPIOC);
 	rcc_periph_clock_enable(RCC_GPIOH);
+	rcc_periph_clock_enable(RCC_GPIOI);
 	rcc_periph_clock_enable(RCC_OTGHSULPI);
 	rcc_periph_clock_enable(RCC_OTGHS);
 
-	/* ULPI   GPIO
+	/*
+	 * ULPI   GPIO
 	 *  D0  -> PA3
 	 *  D1  -> PB0
 	 *  D2  -> PB1
@@ -58,15 +60,16 @@ void cdcacm_target_init(void)
 	 *  D5  -> PB12
 	 *  D6  -> PB13
 	 *  D7  -> PB5
-	 *  DIR -> PC2
+	 *  CK  -> PA5
 	 *  STP -> PC0
 	 *  NXT -> PH4
-	 *  CK  -> PA5
+	 *  DIR -> PI11
 	 */
 	ulpi_pins(GPIOA, GPIO3 | GPIO5);
 	ulpi_pins(GPIOB, GPIO0 | GPIO1 | GPIO5  | GPIO10 | GPIO11 | GPIO12 | GPIO13);
-	ulpi_pins(GPIOC, GPIO0 | GPIO2);
+	ulpi_pins(GPIOC, GPIO0);
 	ulpi_pins(GPIOH, GPIO4);
+	ulpi_pins(GPIOI, GPIO11);
 }
 
 static const usbd_backend_config _config = {
@@ -89,24 +92,3 @@ const usbd_backend *cdcacm_target_usb_driver(void)
 {
 	return USBD_STM32_OTG_HS;
 }
-
-#else /* defined(USE_OTG_HS) */ /* ---- 8< ----- OTG_FS ---- 8< ---- */
-
-void cdcacm_target_init(void)
-{
-	rcc_clock_setup_hse_3v3(&rcc_hse_25mhz_3v3);
-
-	rcc_periph_clock_enable(RCC_GPIOA);
-	rcc_periph_clock_enable(RCC_OTGFS);
-
-	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE,
-			GPIO9 | GPIO11 | GPIO12);
-	gpio_set_af(GPIOA, GPIO_AF10, GPIO9 | GPIO11 | GPIO12);
-}
-
-const usbd_backend *cdcacm_target_usb_driver(void)
-{
-	return USBD_STM32_OTG_FS;
-}
-
-#endif /* defined(USE_OTG_HS) */

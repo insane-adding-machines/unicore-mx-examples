@@ -12,7 +12,7 @@ if __name__ == "__main__":
 	w.connect("destroy", gtk.main_quit)
 	toggle = gtk.ToggleButton("Toggle LED")
 	def toggled(button):
-		dev.ctrl_transfer(0x40, 0, button.get_active(), 0, 'Hello World!')
+		dev.ctrl_transfer(0x40, 0, button.get_active(), 0)
 	toggle.connect("toggled", toggled)
 	w.add(toggle)
 	w.show_all()

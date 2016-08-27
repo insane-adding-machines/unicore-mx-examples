@@ -1,8 +1,8 @@
 /*
  * This file is part of the unicore-mx project.
  *
- * Copyright (C) 2013 Andrzej Surowiec <emeryth@gmail.com>
- * Copyright (C) 2013 Pavol Rusnak <stick@gk2.sk>
+ * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
+ * Copyright (C) 2011 Stephen Caudle <scaudle@doceme.com>
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,14 +18,17 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __RAMDISK_H
-#define __RAMDISK_H
+/* Linker script for ST STM32F4769I-DISCO (STM32F769NIH6, 2014K flash, 128K+386K+16K RAM). */
 
-#include <stdint.h>
-#include <unicore-mx/usbd/class/msc.h>
+/* Define memory regions. */
+MEMORY
+{
+	rom (rx) : ORIGIN = 0x08000000, LENGTH = 2048K
+	dtcm (rwx) : ORIGIN = 0x20000000, LENGTH = 128K
+	ram (rwx) : ORIGIN = 0x20020000, LENGTH = 368K
+	ram2 (rwx) : ORIGIN = 0x2007C000, LENGTH = 16K
+}
 
-int ramdisk_init(void);
+/* Include the common ld script. */
+INCLUDE libucmx_stm32f7.ld
 
-extern const usbd_msc_backend ramdisk;
-
-#endif

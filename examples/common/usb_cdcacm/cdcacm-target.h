@@ -27,6 +27,8 @@
 extern void cdcacm_target_init(void);
 extern const usbd_backend *cdcacm_target_usb_driver(void);
 
+extern const usbd_backend_config * cdcacm_target_usb_config(void);
+
 /* see main() in cdcacm.c for more on this */
 extern void cdcacm_target_usbd_after_init_and_before_first_poll(void);
 

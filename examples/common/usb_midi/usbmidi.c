@@ -23,7 +23,6 @@
 #include <unicore-mx/usbd/usbd.h>
 #include <unicore-mx/usb/class/audio.h>
 #include <unicore-mx/usb/class/midi.h>
-#include <unicore-mx/usbd/misc/string.h>
 #include <unicore-mx/cm3/scb.h>
 #include "usbmidi-target.h"
 
@@ -232,6 +231,32 @@ static const struct usb_interface ifaces[] = {{
 	.altsetting = midi_streaming_iface,
 } };
 
+const uint8_t *usb_strings_english[] = {
+	(uint8_t *) "unicore-mx",
+	(uint8_t *) "MIDI Demo"
+};
+
+/*
+ * MIDI = मिडी
+ * Demo, DEMO = नमूना
+ */
+const uint8_t *usb_strings_hindi[] = {
+	(uint8_t *) "unicore-mx",
+	(uint8_t *) "मिडी नमूना"
+};
+
+const struct usb_string_utf8_data usb_strings[] = {{
+	.data = usb_strings_english,
+	.count = 2,
+	.lang_id = USB_LANGID_ENGLISH_UNITED_STATES
+}, {
+	.data = usb_strings_hindi,
+	.count = 2,
+	.lang_id = USB_LANGID_HINDI
+}, {
+	.data = NULL
+}};
+
 /*
  * Table B-2: MIDI Adapter Configuration Descriptor
  */
@@ -247,6 +272,7 @@ static const struct usb_config_descriptor config[] = {{
 	.bMaxPower = 0x32,
 
 	.interface = ifaces,
+	.string = usb_strings
 }};
 
 /* Buffer to be used for control requests. */
@@ -296,78 +322,82 @@ static const struct usb_device_descriptor dev = {
 	.bNumConfigurations = 1,
 
 	.config = config,
+	.string = usb_strings
 };
 
-const uint8_t *usb_string_english[] = {
-	(uint8_t *) "unicore-mx",
-	(uint8_t *) "MIDI Demo"
-};
-
-/*
- * MIDI = मिडी
- * Demo, DEMO = नमूना
- */
-const uint8_t *usb_string_hindi[] = {
-	(uint8_t *) "unicore-mx",
-	(uint8_t *) "मिडी नमूना"
-};
-
-const uint16_t supported_lang[] = {
-	USB_LANGID_ENGLISH_UNITED_STATES,
-	USB_LANGID_HINDI
-};
-
-static int usb_strings(usbd_device *usbd_dev, struct usbd_get_string_arg *arg)
+static bool error_recoverable(usbd_transfer_status status)
 {
-	(void) usbd_dev;
+	switch (status) {
+	case USBD_ERR_TIMEOUT:
+	case USBD_ERR_IO:
+	case USBD_ERR_BABBLE:
+	case USBD_ERR_DTOG:
+	case USBD_ERR_SHORT_PACKET:
+	case USBD_ERR_OVERFLOW:
+	return true;
 
-	const uint8_t **strings;
-
-	/* supported languages */
-	if (!arg->index) {
-		uint16_t len = arg->len;
-		if (len > 2) {
-			len = 2;
-		}
-		memcpy(arg->buf, supported_lang, len);
-		return len;
-	}
-
-	/* we only have 2 strings */
-	if (arg->index > 2) {
-		return -1;
-	}
-
-	/* language */
-	switch(arg->lang_id) {
-	case USB_LANGID_ENGLISH_UNITED_STATES:
-		strings = usb_string_english;
-		break;
-	case USB_LANGID_HINDI:
-		strings = usb_string_hindi;
-		break;
+	case USBD_ERR_RES_UNAVAIL:
+	case USBD_SUCCESS:
+	case USBD_ERR_SIZE:
+	case USBD_ERR_CONN:
+	case USBD_ERR_INVALID:
+	case USBD_ERR_CONFIG_CHANGE:
+	case USBD_ERR_CANCEL:
 	default:
-		return -1;
+	return false;
 	}
-
-	return usbd_utf8_to_utf16(strings[arg->index - 1], arg->buf, arg->len);
 }
 
-static void usbmidi_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
+static void resubmit_for_recoverable_error(usbd_device *usbd_dev,
+		const usbd_transfer *transfer, usbd_transfer_status status,
+		usbd_urb_id urb_id)
 {
-	(void)ep;
+	(void) urb_id;
 
-	char buf[64];
-	int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, 64);
+	if (status != USBD_SUCCESS) {
+		if (error_recoverable(status)) {
+			usbd_transfer_submit(usbd_dev, transfer);
+		}
+	}
+}
+
+static void send_sysex_identify(usbd_device *usbd_dev)
+{
+	const usbd_transfer transfer = {
+		.ep_type = USBD_EP_BULK,
+		.ep_addr = 0x81,
+		.ep_size = 64,
+		.ep_interval = USBD_INTERVAL_NA,
+		.buffer = (void *) sysex_identity,
+		.length = sizeof(sysex_identity),
+		.flags = USBD_FLAG_NO_SUCCESS_CALLBACK,
+		.timeout = USBD_TIMEOUT_NEVER,
+		.callback = resubmit_for_recoverable_error
+	};
+
+	usbd_transfer_submit(usbd_dev, &transfer);
+}
+
+static void usbmidi_data_rx_cb(usbd_device *usbd_dev,
+		const usbd_transfer *transfer, usbd_transfer_status status,
+		usbd_urb_id urb_id)
+{
+	(void) urb_id;
+
+	if (status != USBD_SUCCESS) {
+		return;
+	}
 
 	/* This implementation treats any message from the host as a SysEx
 	 * identity request. This works well enough providing the host
 	 * packs the identify request in a single 8 byte USB message.
 	 */
-	if (len) {
-		while (usbd_ep_write_packet(usbd_dev, 0x81, sysex_identity,
-					    sizeof(sysex_identity)) == 0);
+	if (transfer->transferred) {
+		send_sysex_identify(usbd_dev);
 	}
+
+	/* Accept more data from host */
+	usbd_transfer_submit(usbd_dev, transfer);
 
 	usbmidi_target_data_rx_cb();
 }
@@ -377,14 +407,49 @@ static void usbmidi_set_config(usbd_device *usbd_dev,
 {
 	(void)cfg;
 
-	usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_BULK, 64,
-			usbmidi_data_rx_cb);
-	usbd_ep_setup(usbd_dev, 0x81, USB_ENDPOINT_ATTR_BULK, 64, NULL);
+	usbd_ep_prepare(usbd_dev, 0x01, USBD_EP_BULK, 64, USBD_INTERVAL_NA,
+					USBD_EP_NONE);
+	usbd_ep_prepare(usbd_dev, 0x81, USBD_EP_BULK, 64, USBD_INTERVAL_NA,
+					USBD_EP_NONE);
+
+	static uint8_t buf[64];
+
+	const usbd_transfer transfer = {
+		.ep_type = USBD_EP_BULK,
+		.ep_addr = 0x01,
+		.ep_size = 64,
+		.ep_interval = USBD_INTERVAL_NA,
+		.buffer = buf,
+		.length = sizeof(buf),
+		.flags = USBD_FLAG_NONE,
+		.timeout = USBD_TIMEOUT_NEVER,
+		.callback = usbmidi_data_rx_cb,
+	};
+
+	usbd_transfer_submit(usbd_dev, &transfer);
+}
+
+static volatile usbd_urb_id button_event_urb_id = USBD_INVALID_URB_ID;
+
+static void button_send_event_callback(usbd_device *usbd_dev,
+		const usbd_transfer *transfer, usbd_transfer_status status,
+		usbd_urb_id urb_id)
+{
+	(void) urb_id;
+
+	if (status != USBD_SUCCESS) {
+		if (error_recoverable(status)) {
+			button_event_urb_id = usbd_transfer_submit(usbd_dev, transfer);
+			return;
+		}
+	}
+
+	button_event_urb_id = USBD_INVALID_URB_ID;
 }
 
 static void button_send_event(usbd_device *usbd_dev, int pressed)
 {
-	char buf[4] = { 0x08, /* USB framing: virtual cable 0, note on */
+	static char buf[4] = { 0x08, /* USB framing: virtual cable 0, note on */
 			0x80, /* MIDI command: note on, channel 1 */
 			60,   /* Note 60 (middle C) */
 			64,   /* "Normal" velocity */
@@ -393,7 +458,24 @@ static void button_send_event(usbd_device *usbd_dev, int pressed)
 	buf[0] |= pressed;
 	buf[1] |= pressed << 4;
 
-	while (usbd_ep_write_packet(usbd_dev, 0x81, buf, sizeof(buf)) == 0);
+	if (button_event_urb_id != USBD_INVALID_URB_ID) {
+		/* already in progress */
+		return;
+	}
+
+	const usbd_transfer transfer = {
+		.ep_type = USBD_EP_BULK,
+		.ep_addr = 0x81,
+		.ep_size = 64,
+		.ep_interval = USBD_INTERVAL_NA,
+		.buffer = buf,
+		.length = sizeof(buf),
+		.flags = USBD_FLAG_NONE,
+		.timeout = USBD_TIMEOUT_NEVER,
+		.callback = button_send_event_callback
+	};
+
+	button_event_urb_id = usbd_transfer_submit(usbd_dev, &transfer);
 }
 
 static void button_poll(usbd_device *usbd_dev)
@@ -418,14 +500,13 @@ int main(void)
 
 	usbmidi_target_init();
 
-	usbd_dev = usbd_init(usbmidi_target_usb_driver(), &dev,
+	usbd_dev = usbd_init(usbmidi_target_usb_driver(), NULL, &dev,
 			usbd_control_buffer, sizeof(usbd_control_buffer));
 
 	usbd_register_set_config_callback(usbd_dev, usbmidi_set_config);
-	usbd_register_get_string_callback(usbd_dev, usb_strings);
 
 	while (1) {
-		usbd_poll(usbd_dev);
+		usbd_poll(usbd_dev, 0);
 		button_poll(usbd_dev);
 	}
 }

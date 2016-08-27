@@ -22,9 +22,17 @@
 #include <unicore-mx/stm32/rcc.h>
 #include <unicore-mx/stm32/gpio.h>
 #include <unicore-mx/stm32/crs.h>
+#include <unicore-mx/stm32/usart.h>
 #include <unicore-mx/usbd/usbd.h>
 #include <unicore-mx/cm3/scb.h>
 #include "cdcacm-target.h"
+
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <inttypes.h>
 
 void cdcacm_target_init(void)
 {

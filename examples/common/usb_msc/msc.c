@@ -23,7 +23,6 @@
 
 #include <unicore-mx/usbd/usbd.h>
 #include <unicore-mx/usbd/class/msc.h>
-#include <unicore-mx/usbd/misc/string.h>
 
 #include "ramdisk.h"
 #include "msc-target.h"
@@ -64,6 +63,20 @@ static const struct usb_interface ifaces[] = {{
 	.altsetting = msc_iface,
 }};
 
+static const uint8_t *usb_strings_ascii[] = {
+	(uint8_t *) "Black Sphere Technologies",
+	(uint8_t *) "MSC Demo",
+	(uint8_t *) "DEMO",
+};
+
+const struct usb_string_utf8_data usb_strings[] = {{
+	.data = usb_strings_ascii,
+	.count = 3,
+	.lang_id = USB_LANGID_ENGLISH_UNITED_STATES
+}, {
+	.data = NULL
+}};
+
 static const struct usb_config_descriptor config_descr[] = {{
 	.bLength = USB_DT_CONFIGURATION_SIZE,
 	.bDescriptorType = USB_DT_CONFIGURATION,
@@ -74,6 +87,7 @@ static const struct usb_config_descriptor config_descr[] = {{
 	.bmAttributes = 0x80,
 	.bMaxPower = 0x32,
 	.interface = ifaces,
+	.string = usb_strings
 }};
 
 static const struct usb_device_descriptor dev_descr = {
@@ -92,44 +106,51 @@ static const struct usb_device_descriptor dev_descr = {
 	.iSerialNumber = 3,
 	.bNumConfigurations = 1,
 
-	.config = config_descr
+	.config = config_descr,
+	.string = usb_strings
 };
 
-static const char *usb_strings_ascii[] = {
-	"Black Sphere Technologies",
-	"MSC Demo",
-	"DEMO",
-};
+/* Buffer to be used for setup requests. */
+static uint8_t usbd_control_buffer[128];
 
-static int usb_strings(usbd_device *usbd_dev, struct usbd_get_string_arg *arg)
+static usbd_msc *ms;
+
+static void set_config_callback(usbd_device *usbd_dev,
+			const struct usb_config_descriptor *cfg)
 {
-	(void) usbd_dev;
-	return usbd_handle_string_ascii(arg, usb_strings_ascii, 3);
+	(void) cfg;
+
+	usbd_ep_prepare(usbd_dev, 0x01, USBD_EP_BULK, 64, USBD_INTERVAL_NA,
+								USBD_EP_DOUBLE_BUFFER);
+	usbd_ep_prepare(usbd_dev, 0x82, USBD_EP_BULK, 64, USBD_INTERVAL_NA,
+								USBD_EP_DOUBLE_BUFFER);
+	usbd_msc_start(ms);
 }
 
-static usbd_device *msc_dev;
-/* Buffer to be used for control requests. */
-static uint8_t usbd_control_buffer[128];
+static void setup_callback(usbd_device *usbd_dev, uint8_t ep_addr,
+			const struct usb_setup_data *setup_data)
+{
+	(void) ep_addr; /* assuming ep_addr == 0 */
+
+	if (!usbd_msc_setup_ep0(ms, setup_data)) {
+		usbd_ep0_setup(usbd_dev, setup_data);
+	}
+}
 
 int main(void)
 {
 	msc_target_init();
 
-	msc_dev = usbd_init(msc_target_usb_driver(), &dev_descr,
-				usbd_control_buffer, sizeof(usbd_control_buffer));
-
-	usbd_register_get_string_callback(msc_dev, usb_strings);
+	usbd_device *msc_dev = usbd_init(msc_target_usb_driver(), NULL,
+				&dev_descr, usbd_control_buffer, sizeof(usbd_control_buffer));
 
 	ramdisk_init();
-	usbd_msc_init(msc_dev, 0x82, 64, 0x01, 64,
-		"VendorID", "ProductID", "0.00",
-		ramdisk_blocks(), ramdisk_read, ramdisk_write);
 
-	usbd_register_set_config_callback(msc_dev, usbd_msc_set_config);
-	usbd_register_control_callback(msc_dev, usbd_msc_control);
-	usbd_register_get_string_callback(msc_dev, usb_strings);
+	ms = usbd_msc_init(msc_dev, 0x82, 64, 0x01, 64, &ramdisk);
+	usbd_register_set_config_callback(msc_dev, set_config_callback);
+	usbd_register_setup_callback(msc_dev, setup_callback);
 
 	for (;;) {
-		usbd_poll(msc_dev);
+		usbd_poll(msc_dev, 0);
 	}
 }

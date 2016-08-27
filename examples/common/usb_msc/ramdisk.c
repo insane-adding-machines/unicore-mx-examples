@@ -43,7 +43,7 @@
 // filesize is 64kB (128 * SECTOR_SIZE)
 #define FILEDATA_SECTOR_COUNT	128
 
-uint8_t BootSector[] = {
+static const uint8_t BootSector[] = {
 	0xEB, 0x3C, 0x90,					// code to jump to the bootstrap code
 	'm', 'k', 'd', 'o', 's', 'f', 's', 0x00,		// OEM ID
 	WBVAL(BYTES_PER_SECTOR),				// bytes per sector
@@ -66,7 +66,7 @@ uint8_t BootSector[] = {
 	'F', 'A', 'T', '1', '2', ' ', ' ', ' '			// filesystem type
 };
 
-uint8_t FatSector[] = {
+static const uint8_t FatSector[] = {
 	0xF8, 0xFF, 0xFF, 0x00, 0x40, 0x00, 0x05, 0x60, 0x00, 0x07, 0x80, 0x00,
 	0x09, 0xA0, 0x00, 0x0B, 0xC0, 0x00, 0x0D, 0xE0, 0x00, 0x0F, 0x00, 0x01,
 	0x11, 0x20, 0x01, 0x13, 0x40, 0x01, 0x15, 0x60, 0x01, 0x17, 0x80, 0x01,
@@ -91,7 +91,7 @@ uint8_t FatSector[] = {
 	0x00, 0x00, 0x00, 0x00
 };
 
-uint8_t DirSector[] = {
+static uint8_t DirSector[] = {
 	// long filename entry
 	0x41,									// sequence number
 	WBVAL('r'), WBVAL('a'), WBVAL('m'), WBVAL('d'), WBVAL('i'),		// five name characters in UTF-16
@@ -128,6 +128,7 @@ int ramdisk_init(void)
 	for (i = 32; i < 43; i++) {
 		chk = (((chk & 1) << 7) | ((chk & 0xFE) >> 1)) + DirSector[i];
 	}
+	/* TODO: DirSector can be const too, checksum can be hardcoded */
 	DirSector[13] = chk;
 
 	// fill ramdata
@@ -140,8 +141,12 @@ int ramdisk_init(void)
 	return 0;
 }
 
-int ramdisk_read(uint32_t lba, uint8_t *copy_to)
+static int ramdisk_read(const usbd_msc_backend *ign, uint32_t lba,
+									void *_copy_to)
 {
+	(void) ign;
+	uint8_t *copy_to = _copy_to;
+
 	memset(copy_to, 0, SECTOR_SIZE);
 	switch (lba) {
 		case 0: // sector 0 is the boot sector
@@ -166,15 +171,21 @@ int ramdisk_read(uint32_t lba, uint8_t *copy_to)
 	return 0;
 }
 
-int ramdisk_write(uint32_t lba, const uint8_t *copy_from)
+static int ramdisk_write(const usbd_msc_backend *ign, uint32_t lba,
+						const void *copy_from)
 {
+	(void)ign;
 	(void)lba;
 	(void)copy_from;
 	// ignore writes
 	return 0;
 }
 
-int ramdisk_blocks(void)
-{
-	return SECTOR_COUNT;
-}
+const usbd_msc_backend ramdisk = {
+	.vendor_id = "VendorID",
+	.product_id = "ProductID",
+	.product_rev = "0.00",
+	.block_count = SECTOR_COUNT,
+	.write_block = ramdisk_write,
+	.read_block = ramdisk_read
+};

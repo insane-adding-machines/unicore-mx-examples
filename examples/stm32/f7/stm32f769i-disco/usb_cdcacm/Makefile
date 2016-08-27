@@ -1,7 +1,7 @@
 ##
 ## This file is part of the unicore-mx project.
 ##
-## Copyright (C) 2012 Alexandru Gagniuc <mr.nuke.me@gmail.com>
+## Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
 ##
 ## This library is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
@@ -17,11 +17,12 @@
 ## along with this library.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-BINARY = usb_to_serial_cdcacm
+BINARY = cdcacm
 
-LDSCRIPT = ../ek-lm4f120xl.ld
+VPATH += $(COMMON_DIR)/usb_cdcacm
+CPPFLAGS += -I$(COMMON_DIR)/usb_cdcacm
+OBJS = cdcacm-target.o
 
-
-OBJS += uart.o usb_cdcacm.o
+LDSCRIPT = ../stm32f769i-disco.ld
 
 include ../../Makefile.include
