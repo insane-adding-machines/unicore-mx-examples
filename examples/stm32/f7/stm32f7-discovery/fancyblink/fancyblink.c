@@ -23,7 +23,7 @@
 
 static void clock_setup(void)
 {
-	rcc_clock_setup_hse_3v3(&hse_25mhz_3v3);
+	rcc_clock_setup_hse_3v3(&rcc_hse_25mhz_3v3);
 	rcc_periph_clock_enable(RCC_GPIOI);
 }
 
