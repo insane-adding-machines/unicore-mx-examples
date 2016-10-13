@@ -19,7 +19,7 @@
 
 BINARY = miniblink
 
-LDSCRIPT = ../stm32f7-discovery.ld
+LDSCRIPT = ../stm32f746-disco.ld
 
 include ../../Makefile.include
 

@@ -17,9 +17,13 @@
 ## along with this library.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-BINARY = fancyblink
+BINARY = msc
 
-LDSCRIPT = ../stm32f7-discovery.ld
+VPATH += $(COMMON_DIR)/usb_msc
+CPPFLAGS += -I$(COMMON_DIR)/usb_msc
+OBJS = msc-target.o ramdisk.o
+
+LDSCRIPT = ../stm32f746-disco.ld
 
 include ../../Makefile.include
 

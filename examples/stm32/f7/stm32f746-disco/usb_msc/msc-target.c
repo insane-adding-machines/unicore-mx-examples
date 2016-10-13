@@ -1,8 +1,8 @@
 /*
  * This file is part of the unicore-mx project.
  *
- * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
- * Copyright (C) 2011 Stephen Caudle <scaudle@doceme.com>
+ * Copyright (C) 2010 Gareth McMullin <gareth@blacksphere.co.nz>
+ * Copyright (C) 2016 Kuldeep Singh Dhaka <kuldeepdhaka9@gmail.com>
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,15 +18,27 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Linker script for ST STM32F4DISCOVERY (STM32F407VG, 1024K flash, 128K RAM). */
+#include <stdlib.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/usbd/usbd.h>
+#include <unicore-mx/stm32/otg_fs.h>
+#include <unicore-mx/cm3/scb.h>
+#include "msc-target.h"
 
-/* Define memory regions. */
-MEMORY
+void msc_target_init(void)
 {
-	rom (rx) : ORIGIN = 0x08000000, LENGTH = 1024K
-	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 240K
+	rcc_clock_setup_hse_3v3(&rcc_hse_25mhz_3v3);
+
+	rcc_periph_clock_enable(RCC_GPIOA);
+	rcc_periph_clock_enable(RCC_OTGFS);
+
+	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE,
+			GPIO9 | GPIO11 | GPIO12);
+	gpio_set_af(GPIOA, GPIO_AF10, GPIO9 | GPIO11 | GPIO12);
 }
 
-/* Include the common ld script. */
-INCLUDE libucmx_stm32f7.ld
-
+const usbd_backend *msc_target_usb_driver(void)
+{
+	return USBD_STM32_OTG_FS;
+}

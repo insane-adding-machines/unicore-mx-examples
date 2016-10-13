@@ -16,11 +16,11 @@
 #
 
 OBJS = clock.o \
-	   sdram.o \
+	   RGB_565_480_272.o \
 
-BINARY = lcd-ram-demo
+BINARY = lcd_demo
 
-LDSCRIPT = ../stm32f7-discovery.ld
+LDSCRIPT = ../stm32f746-disco.ld
 
 include ../../Makefile.include
 
