@@ -15,12 +15,11 @@
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-OBJS = clock.o \
-	   RGB_565_480_272.o \
+OBJS = clock.o
 
-BINARY = lcd_demo
+BINARY = usart_console
 
-LDSCRIPT = ../stm32f7-discovery.ld
+LDSCRIPT = ../stm32f746-disco.ld
 
 include ../../Makefile.include
 
