@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2010 Gareth McMullin <gareth@blacksphere.co.nz>
  * Copyright (C) 2011 Piotr Esden-Tempski <piotr@esden.net>
- * Copyright (C) 2015 Kuldeep Singh Dhaka <kuldeepdhaka9@gmail.com>
+ * Copyright (C) 2015, 2016 Kuldeep Singh Dhaka <kuldeepdhaka9@gmail.com>
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,6 @@
 #include <unicore-mx/cm3/systick.h>
 #include <unicore-mx/usbd/usbd.h>
 #include <unicore-mx/usb/class/hid.h>
-#include <unicore-mx/usbd/misc/string.h>
 #include "usbhid-target.h"
 
 /* Define this (in the Makefile CFLAGS) to include the DFU APP interface. */
@@ -158,6 +157,20 @@ const struct usb_interface ifaces[] = {{
 #endif
 }};
 
+static const uint8_t *usb_strings_ascii[] = {
+	(uint8_t *) "Black Sphere Technologies",
+	(uint8_t *) "HID Demo",
+	(uint8_t *) "DEMO",
+};
+
+const struct usb_string_utf8_data usb_strings[] = {{
+	.data = usb_strings_ascii,
+	.count = 3,
+	.lang_id = USB_LANGID_ENGLISH_UNITED_STATES
+}, {
+	.data = NULL
+}};
+
 const struct usb_config_descriptor config[] = {{
 	.bLength = USB_DT_CONFIGURATION_SIZE,
 	.bDescriptorType = USB_DT_CONFIGURATION,
@@ -173,6 +186,7 @@ const struct usb_config_descriptor config[] = {{
 	.bMaxPower = 0x32,
 
 	.interface = ifaces,
+	.string = usb_strings
 }};
 
 const struct usb_device_descriptor dev_descr = {
@@ -191,41 +205,26 @@ const struct usb_device_descriptor dev_descr = {
 	.iSerialNumber = 3,
 	.bNumConfigurations = 1,
 
-	.config = config
-};
-
-static const char *usb_strings_ascii[] = {
-	"Black Sphere Technologies",
-	"HID Demo",
-	"DEMO",
+	.config = config,
+	.string = usb_strings
 };
 
 /* Buffer used for control requests. */
 uint8_t usbd_control_buffer[128];
 
-static int usb_strings(usbd_device *dev, struct usbd_get_string_arg *arg)
+static bool hid_setup_callback(usbd_device *dev,
+				const struct usb_setup_data *setup_data)
 {
-	(void)dev;
-	return usbd_handle_string_ascii(arg, usb_strings_ascii, 3);
-}
-
-static int hid_control_request(usbd_device *dev, struct usbd_control_arg *arg)
-{
-	(void)dev;
-
-	if(	(arg->setup.bmRequestType != 0x81) ||
-		(arg->setup.bRequest != USB_REQ_GET_DESCRIPTOR) ||
-		(arg->setup.wValue != 0x2200)) {
-		return USBD_REQ_NEXT;
+	if(	(setup_data->bmRequestType != 0x81) ||
+		(setup_data->bRequest != USB_REQ_GET_DESCRIPTOR) ||
+		(setup_data->wValue != 0x2200)) {
+		return false;
 	}
 
 	/* Handle the HID report descriptor. */
-	arg->buf = (uint8_t *)hid_report_descriptor;
-	if (arg->len > sizeof(hid_report_descriptor)) {
-		arg->len = sizeof(hid_report_descriptor);
-	}
-
-	return USBD_REQ_HANDLED;
+	usbd_ep0_transfer(dev, setup_data, (void *) hid_report_descriptor,
+			sizeof(hid_report_descriptor), NULL);
+	return true;
 }
 
 #ifdef INCLUDE_DFU_INTERFACE
@@ -233,45 +232,45 @@ static int hid_control_request(usbd_device *dev, struct usbd_control_arg *arg)
 void __attribute__((weak))
 usbhid_detach_complete_before_scb_reset_core(void) { /* empty */ }
 
-static void dfu_detach_complete(usbd_device *dev, struct usbd_control_arg *arg)
+static void dfu_detach_complete()
 {
-	(void)arg;
-	(void)dev;
-
 	usbhid_detach_complete_before_scb_reset_core();
 	scb_reset_core();
 }
 
-static enum usbd_control_result
-dfu_control_request(usbd_device *dev, struct usbd_control_arg *arg)
+bool dfu_control_request(usbd_device *dev,
+					const struct usb_setup_data *setup_data)
 {
 	(void)dev;
 
-	if ((arg->setup.bmRequestType != 0x21) ||
-		(arg->setup.bRequest != DFU_DETACH)) {
-		return USBD_REQ_NEXT; /* Only accept class request. */
+	if ((setup_data->bmRequestType != 0x21) ||
+		(setup_data->bRequest != DFU_DETACH)) {
+		return false; /* Only accept class request. */
 	}
 
-	arg->complete = dfu_detach_complete;
-
-	return USBD_REQ_HANDLED;
+	/* no data stage - dfu_detach_complete will be called in status stage */
+	usbd_ep0_transfer(dev, setup_data, NULL, 0,
+		(usbd_transfer_control_handle_callback) dfu_detach_complete);
+	return true;
 }
 #endif
 
-static enum usbd_control_result
-control_callback(usbd_device *dev, struct usbd_control_arg *arg)
+static void setup_callback(usbd_device *dev, uint8_t ep_addr,
+						const struct usb_setup_data *setup_data)
 {
-	enum usbd_control_result result;
+	(void) ep_addr; /* assuming ep_addr == 0 */
 
-	result = hid_control_request(dev, arg);
+	if (hid_setup_callback(dev, setup_data)) {
+		return;
+	}
 
 #ifdef INCLUDE_DFU_INTERFACE
-	if (result == USBD_REQ_NEXT) {
-		result = dfu_control_request(dev, arg);
+	if (hid_control_request(dev, arg)) {
+		return;
 	}
 #endif
 
-	return result;
+	usbd_ep0_setup(dev, setup_data);
 }
 
 static void hid_set_config(usbd_device *dev,
@@ -279,7 +278,7 @@ static void hid_set_config(usbd_device *dev,
 {
 	(void)cfg;
 
-	usbd_ep_setup(dev, 0x81, USB_ENDPOINT_ATTR_INTERRUPT, 4, NULL);
+	usbd_ep_prepare(dev, 0x81, USBD_EP_INTERRUPT, 4, 2, USBD_EP_NONE);
 
 #if defined(__ARM_ARCH_6M__)
 	systick_set_clocksource(STK_CSR_CLKSOURCE_AHB);
@@ -301,17 +300,16 @@ int main(void)
 {
 	usbhid_target_init();
 
-	usbd_dev = usbd_init(usbhid_target_usb_driver(), &dev_descr,
+	usbd_dev = usbd_init(usbhid_target_usb_driver(), NULL, &dev_descr,
 		usbd_control_buffer, sizeof(usbd_control_buffer));
 
 	usbd_register_set_config_callback(usbd_dev, hid_set_config);
-	usbd_register_control_callback(usbd_dev, control_callback);
-	usbd_register_get_string_callback(usbd_dev, usb_strings);
+	usbd_register_setup_callback(usbd_dev, setup_callback);
 
 	usbhid_target_usbd_after_init_and_before_first_poll();
 
 	while (1) {
-		usbd_poll(usbd_dev);
+		usbd_poll(usbd_dev, 0);
 	}
 }
 
@@ -338,10 +336,27 @@ usbhid_target_accel_get(int16_t *out_x, int16_t *out_y, int16_t *out_z)
 	}
 }
 
+static usbd_urb_id last_urb_id = USBD_INVALID_URB_ID;
+
+static void transfer_callback(usbd_device *_usbd_dev,
+	const usbd_transfer *transfer, usbd_transfer_status status,
+	usbd_urb_id urb_id)
+{
+	(void) _usbd_dev;
+	(void) transfer;
+	(void) status;
+	(void) urb_id;
+	last_urb_id = USBD_INVALID_URB_ID;
+}
+
 void sys_tick_handler(void)
 {
+	if (last_urb_id != USBD_INVALID_URB_ID) {
+		return;
+	}
+
 	int16_t x = 0, y = 0, z = 0;
-	uint8_t buf[4];
+	static uint8_t buf[4];
 
 	usbhid_target_accel_get(&x, &y, &z);
 
@@ -350,5 +365,17 @@ void sys_tick_handler(void)
 	buf[2] = y;
 	buf[3] = z;
 
-	usbd_ep_write_packet(usbd_dev, 0x81, buf, sizeof(buf));
+	const usbd_transfer transfer = {
+		.ep_type = USBD_EP_INTERRUPT,
+		.ep_addr = 0x81,
+		.ep_size = 4,
+		.ep_interval = 2,
+		.buffer = buf,
+		.length = 4,
+		.flags = USBD_FLAG_NONE,
+		.timeout = USBD_TIMEOUT_NEVER,
+		.callback = transfer_callback,
+	};
+
+	last_urb_id = usbd_transfer_submit(usbd_dev, &transfer);
 }

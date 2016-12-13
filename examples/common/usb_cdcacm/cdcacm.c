@@ -21,7 +21,6 @@
 #include <string.h>
 #include <unicore-mx/usbd/usbd.h>
 #include <unicore-mx/usb/class/cdc.h>
-#include <unicore-mx/usbd/misc/string.h>
 #include "cdcacm-target.h"
 
 /*
@@ -128,20 +127,7 @@ static const struct usb_interface ifaces[] = {{
 	.altsetting = data_iface,
 }};
 
-static const struct usb_config_descriptor config[] = {{
-	.bLength = USB_DT_CONFIGURATION_SIZE,
-	.bDescriptorType = USB_DT_CONFIGURATION,
-	.wTotalLength = 0,
-	.bNumInterfaces = 2,
-	.bConfigurationValue = 1,
-	.iConfiguration = 0,
-	.bmAttributes = 0x80,
-	.bMaxPower = 0x32,
-
-	.interface = ifaces,
-}};
-
-const uint8_t *usb_string_english[] = {
+const uint8_t *usb_strings_english[] = {
 	(uint8_t *) "Black Sphere Technologies",
 	(uint8_t *) "CDC-ACM Demo",
 	(uint8_t *) "DEMO",
@@ -154,52 +140,37 @@ const uint8_t *usb_string_english[] = {
  * CDC-ACM = सीडीसी-एसीएम
  * Demo, DEMO = नमूना
  */
-const uint8_t *usb_string_hindi[] = {
+const uint8_t *usb_strings_hindi[] = {
 	(uint8_t *) "काला गोला प्रौद्योगिकी",
 	(uint8_t *) "सीडीसी-एसीएम नमूना",
 	(uint8_t *) "नमूना"
 };
 
-const uint16_t supported_lang[] = {
-	USB_LANGID_ENGLISH_UNITED_STATES,
-	USB_LANGID_HINDI
-};
+const struct usb_string_utf8_data usb_strings[] = {{
+	.data = usb_strings_english,
+	.count = 3,
+	.lang_id = USB_LANGID_ENGLISH_UNITED_STATES
+}, {
+	.data = usb_strings_hindi,
+	.count = 3,
+	.lang_id = USB_LANGID_HINDI
+}, {
+	.data = NULL
+}};
 
-static int usb_strings(usbd_device *usbd_dev, struct usbd_get_string_arg *arg)
-{
-	(void) usbd_dev;
+static const struct usb_config_descriptor config[] = {{
+	.bLength = USB_DT_CONFIGURATION_SIZE,
+	.bDescriptorType = USB_DT_CONFIGURATION,
+	.wTotalLength = 0,
+	.bNumInterfaces = 2,
+	.bConfigurationValue = 1,
+	.iConfiguration = 0,
+	.bmAttributes = 0x80,
+	.bMaxPower = 0x32,
 
-	const uint8_t **strings;
-
-	/* supported languages */
-	if (!arg->index) {
-		uint16_t len = arg->len;
-		if (len > 2) {
-			len = 2;
-		}
-		memcpy(arg->buf, supported_lang, len);
-		return len;
-	}
-
-	/* we only have 3 strings */
-	if (arg->index > 3) {
-		return -1;
-	}
-
-	/* language */
-	switch(arg->lang_id) {
-	case USB_LANGID_ENGLISH_UNITED_STATES:
-		strings = usb_string_english;
-		break;
-	case USB_LANGID_HINDI:
-		strings = usb_string_hindi;
-		break;
-	default:
-		return -1;
-	}
-
-	return usbd_utf8_to_utf16(strings[arg->index - 1], arg->buf, arg->len);
-}
+	.interface = ifaces,
+	.string = usb_strings
+}};
 
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
@@ -218,67 +189,120 @@ static const struct usb_device_descriptor dev = {
 	.bNumConfigurations = 1,
 
 	.config = config,
+	.string = usb_strings
 };
 
 /* Buffer to be used for control requests. */
-uint8_t usbd_control_buffer[128];
+uint8_t usbd_control_buffer[128] __attribute__((aligned(2)));
 
-static enum usbd_control_result
-cdcacm_control_request(usbd_device *usbd_dev, struct usbd_control_arg *arg)
+static void cdcacm_control_request(usbd_device *usbd_dev, uint8_t ep,
+				const struct usb_setup_data *setup_data)
 {
-	(void)usbd_dev;
+	(void) ep; /* assuming ep == 0 */
 
 	const uint8_t bmReqMask = USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT;
 	const uint8_t bmReqVal = USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE;
 
-	if ((arg->setup.bmRequestType & bmReqMask) != bmReqVal) {
-		return USBD_REQ_NEXT;
+	if ((setup_data->bmRequestType & bmReqMask) != bmReqVal) {
+		/* Pass on to usb stack internal */
+		usbd_ep0_setup(usbd_dev, setup_data);
+		return;
 	}
 
-	switch (arg->setup.bRequest) {
-	case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
+	switch (setup_data->bRequest) {
+	case USB_CDC_REQ_SET_CONTROL_LINE_STATE:
 		/*
 		 * This Linux cdc_acm driver requires this to be implemented
 		 * even though it's optional in the CDC spec, and we don't
 		 * advertise it in the ACM functional descriptor.
 		 */
-		char local_buf[10];
-		struct usb_cdc_notification *notif = (void *)local_buf;
-
-		/* We echo signals back to host as notification. */
-		notif->bmRequestType = 0xA1;
-		notif->bNotification = USB_CDC_NOTIFY_SERIAL_STATE;
-		notif->wValue = 0;
-		notif->wIndex = 0;
-		notif->wLength = 2;
-		local_buf[8] = arg->setup.wValue & 3;
-		local_buf[9] = 0;
-		// usbd_ep_write_packet(0x83, buf, 10);
-		return USBD_REQ_HANDLED;
-		}
+		usbd_ep0_transfer(usbd_dev, setup_data, NULL, 0, NULL);
+	return;
 	case USB_CDC_REQ_SET_LINE_CODING:
-		if (arg->len < sizeof(struct usb_cdc_line_coding)) {
-			return USBD_REQ_STALL;
+		if (setup_data->wLength < sizeof(struct usb_cdc_line_coding)) {
+			break;
 		}
-		return USBD_REQ_HANDLED;
+
+		/* Just read what ever host is sending and do the status stage */
+		usbd_ep0_transfer(usbd_dev, setup_data, usbd_control_buffer,
+			setup_data->wLength, NULL);
+	return;
 	}
-	return USBD_REQ_STALL;
+
+	usbd_ep0_stall(usbd_dev);
 }
 
 void __attribute__((weak))
 cdcacm_target_data_rx_cb_before_return(void) { /* empty */ }
 
-static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
+static uint8_t bulk_buf[64];
+
+static void cdcacm_data_rx_cb(usbd_device *usbd_dev,
+	const usbd_transfer *_transfer, usbd_transfer_status status,
+	usbd_urb_id urb_id);
+
+static void cdcacm_data_tx_cb(usbd_device *usbd_dev,
+	const usbd_transfer *_transfer, usbd_transfer_status status,
+	usbd_urb_id urb_id);
+
+static void rx_from_host(usbd_device *usbd_dev)
 {
-	(void)ep;
-	(void)usbd_dev;
+	const usbd_transfer transfer = {
+		.ep_type = USBD_EP_BULK,
+		.ep_addr = 0x01,
+		.ep_size = 64,
+		.ep_interval = USBD_INTERVAL_NA,
+		.buffer = bulk_buf,
+		.length = 64,
+		.flags = USBD_FLAG_SHORT_PACKET,
+		.timeout = USBD_TIMEOUT_NEVER,
+		.callback = cdcacm_data_rx_cb
+	};
 
-	char buf[64];
-	int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, 64);
+	usbd_transfer_submit(usbd_dev, &transfer);
+}
 
-	if (len) {
-		usbd_ep_write_packet(usbd_dev, 0x82, buf, len);
-		buf[len] = 0;
+static void tx_to_host(usbd_device *usbd_dev, void *data, size_t len)
+{
+	const usbd_transfer transfer = {
+		.ep_type = USBD_EP_BULK,
+		.ep_addr = 0x82,
+		.ep_size = 64,
+		.ep_interval = USBD_INTERVAL_NA,
+		.buffer = data,
+		.length = len,
+		.flags = USBD_FLAG_SHORT_PACKET,
+		.timeout = USBD_TIMEOUT_NEVER,
+		.callback = cdcacm_data_tx_cb
+	};
+
+	usbd_transfer_submit(usbd_dev, &transfer);
+}
+
+static void cdcacm_data_tx_cb(usbd_device *usbd_dev,
+	const usbd_transfer *transfer, usbd_transfer_status status,
+	usbd_urb_id urb_id)
+{
+	(void) urb_id;
+	(void) transfer;
+
+	if (status == USBD_SUCCESS) {
+		rx_from_host(usbd_dev);
+	}
+}
+
+static void cdcacm_data_rx_cb(usbd_device *usbd_dev,
+	const usbd_transfer *transfer, usbd_transfer_status status,
+	usbd_urb_id urb_id)
+{
+	(void) urb_id;
+
+	if (status == USBD_SUCCESS) {
+		if (transfer->transferred) {
+			tx_to_host(usbd_dev, transfer->buffer, transfer->transferred);
+		} else {
+			usbd_transfer_submit(usbd_dev, transfer); /* re-submit */
+		}
 	}
 
 	/* this was only found in f1/lisa-m-1/usb_cdcacm.c */
@@ -289,14 +313,18 @@ static void cdcacm_set_config(usbd_device *usbd_dev,
 				const struct usb_config_descriptor *cfg)
 {
 	(void)cfg;
+	usbd_ep_prepare(usbd_dev, 0x01, USBD_EP_BULK, 64, USBD_INTERVAL_NA, USBD_EP_NONE);
+	usbd_ep_prepare(usbd_dev, 0x82, USBD_EP_BULK, 64, USBD_INTERVAL_NA, USBD_EP_NONE);
+	usbd_ep_prepare(usbd_dev, 0x83, USBD_EP_INTERRUPT, 16, USBD_INTERVAL_NA, USBD_EP_NONE);
 
-	usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_BULK, 64, cdcacm_data_rx_cb);
-	usbd_ep_setup(usbd_dev, 0x82, USB_ENDPOINT_ATTR_BULK, 64, NULL);
-	usbd_ep_setup(usbd_dev, 0x83, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
+	rx_from_host(usbd_dev);
 }
 
 void __attribute__((weak))
 cdcacm_target_usbd_after_init_and_before_first_poll(void) { /* empty */ }
+
+const usbd_backend_config * __attribute__((weak))
+cdcacm_target_usb_config(void) { return NULL; }
 
 int main(void)
 {
@@ -304,12 +332,12 @@ int main(void)
 
 	cdcacm_target_init();
 
-	usbd_dev = usbd_init(cdcacm_target_usb_driver(), &dev,
+	usbd_dev = usbd_init(cdcacm_target_usb_driver(),
+		cdcacm_target_usb_config(), &dev,
 		usbd_control_buffer, sizeof(usbd_control_buffer));
 
 	usbd_register_set_config_callback(usbd_dev, cdcacm_set_config);
-	usbd_register_control_callback(usbd_dev, cdcacm_control_request);
-	usbd_register_get_string_callback(usbd_dev, usb_strings);
+	usbd_register_setup_callback(usbd_dev, cdcacm_control_request);
 
 	/* on f3, here was a busy loop after usbd init and before first poll.
 	 *  as the use of the busy loop is unknow,
@@ -317,6 +345,6 @@ int main(void)
 	cdcacm_target_usbd_after_init_and_before_first_poll();
 
 	while (1) {
-		usbd_poll(usbd_dev);
+		usbd_poll(usbd_dev, 0);
 	}
 }

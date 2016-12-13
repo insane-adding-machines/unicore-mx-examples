@@ -28,7 +28,7 @@ ARCH_FLAGS	= -mthumb -mcpu=cortex-m3 $(FP_FLAGS)
 # OpenOCD specific variables
 
 OOCD		?= openocd
-OOCD_INTERFACE	?= flossjtag
+OOCD_INTERFACE	?= jlink
 OOCD_BOARD	?= efm32
 
 ################################################################################
