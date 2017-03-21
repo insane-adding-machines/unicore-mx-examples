@@ -464,7 +464,7 @@ int main(void)
 
 	usart_puts("\n\n\n\n======STARTING=============\n");
 
-	usbh_host *host = usbh_init(usbh_kbd_backend());
+	usbh_host *host = usbh_init(usbh_kbd_backend(), NULL);
 	usbh_register_connected_callback(host, got_a_device);
 
 	uint16_t last = tim_get_counter();
