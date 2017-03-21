@@ -1,7 +1,7 @@
 /*
  * This file is part of the unicore-mx project.
  *
- * Copyright (C) 2016 Kuldeep Singh Dhaka <kuldeepdhaka9@gmail.com>
+ * Copyright (C) 2016, 2017 Kuldeep Singh Dhaka <kuldeepdhaka9@gmail.com>
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -458,13 +458,19 @@ static void got_a_device(usbh_device *dev)
 	usbh_ctrlreq_read_desc(dev, USB_DT_DEVICE, 0, buf, 18, got_dev_desc);
 }
 
+const usbh_backend_config * __attribute__((weak))
+usbh_kbd_config(void) { return NULL; }
+
+void __attribute__((weak)) usbh_kbd_before_poll(void) {}
+void __attribute__((weak)) usbh_kbd_after_poll(void) {}
+
 int main(void)
 {
 	usbh_kbd_init();
 
 	usart_puts("\n\n\n\n======STARTING=============\n");
 
-	usbh_host *host = usbh_init(usbh_kbd_backend(), NULL);
+	usbh_host *host = usbh_init(usbh_kbd_backend(), usbh_kbd_config());
 	usbh_register_connected_callback(host, got_a_device);
 
 	uint16_t last = tim_get_counter();
