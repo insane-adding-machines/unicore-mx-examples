@@ -1,7 +1,7 @@
 /*
  * This file is part of the unicore-mx project.
  *
- * Copyright (C) 2016 Kuldeep Singh Dhaka <kuldeepdhaka9@gmail.com>
+ * Copyright (C) 2016, 2017 Kuldeep Singh Dhaka <kuldeepdhaka9@gmail.com>
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,6 +32,7 @@
 void usbh_kbd_init(void);
 
 usbh_backend *usbh_kbd_backend(void);
+const usbh_backend_config *usbh_kbd_config(void);
 
 /**
  * The timer is expected to

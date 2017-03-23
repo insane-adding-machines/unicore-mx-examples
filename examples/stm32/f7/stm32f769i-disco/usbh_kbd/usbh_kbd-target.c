@@ -20,61 +20,68 @@
 
 #include "usbh_kbd-target.h"
 
+#include <unicore-mx/stm32/memorymap.h>
 #include <unicore-mx/stm32/rcc.h>
 #include <unicore-mx/stm32/gpio.h>
 #include <unicore-mx/stm32/usart.h>
 #include <unicore-mx/stm32/timer.h>
-#include <unicore-mx/stm32/otg_fs.h>
+#include <unicore-mx/stm32/otg_hs.h>
 
-/* #define USE_OTG_HS */
-
-/**
- * Generate clock for different part from 8Mhz clock
- * AHB = 168Mhz
- * APB1 = 42Mhz
- * APB2 = 84Mhz
- */
 static void clock_setup(void)
 {
-	rcc_clock_setup_hse_3v3(&rcc_hse_8mhz_3v3[RCC_CLOCK_3V3_168MHZ]);
+	/* Base board frequency, set to 216MHz */
+	rcc_clock_setup_hse_3v3(&rcc_hse_25mhz_3v3);
 
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_GPIOB);
 	rcc_periph_clock_enable(RCC_GPIOC);
-	rcc_periph_clock_enable(RCC_GPIOD);
-
+	rcc_periph_clock_enable(RCC_GPIOH);
+	rcc_periph_clock_enable(RCC_GPIOI);
+	rcc_periph_clock_enable(RCC_GPIOJ);
 	rcc_periph_clock_enable(RCC_USART6);
-#if defined(USE_OTG_HS)
 	rcc_periph_clock_enable(RCC_OTGHS);
-#else
-	rcc_periph_clock_enable(RCC_OTGFS);
-#endif
+	rcc_periph_clock_enable(RCC_OTGHSULPI);
 	rcc_periph_clock_enable(RCC_TIM6);
+}
+
+static void ulpi_pins(uint32_t gpioport, uint16_t gpiopins)
+{
+	gpio_mode_setup(gpioport, GPIO_MODE_AF, GPIO_PUPD_NONE, gpiopins);
+	gpio_set_output_options(gpioport, GPIO_OTYPE_PP, GPIO_OSPEED_100MHZ, gpiopins);
+	gpio_set_af(gpioport, GPIO_AF10, gpiopins);
 }
 
 static void gpio_setup(void)
 {
-	/* Set GPIO12-15 (in GPIO port D) to 'output push-pull'. */
-	gpio_mode_setup(GPIOD, GPIO_MODE_OUTPUT,
-			GPIO_PUPD_NONE, GPIO12 | GPIO13 | GPIO14 | GPIO15);
-
-	/* Set */
-	gpio_mode_setup(GPIOC, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO0);
-	gpio_clear(GPIOC, GPIO0);
-
-#if defined(USE_OTG_HS)
 	/* OTG_HS */
-	gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO14 | GPIO15);
-	gpio_set_af(GPIOB, GPIO_AF12, GPIO14 | GPIO15);
-#else
-	/* OTG_FS */
-	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO11 | GPIO12);
-	gpio_set_af(GPIOA, GPIO_AF10, GPIO11 | GPIO12);
-#endif
+	/*
+	 * ULPI   GPIO
+	 *  D0  -> PA3
+	 *  D1  -> PB0
+	 *  D2  -> PB1
+	 *  D3  -> PB10
+	 *  D4  -> PB11
+	 *  D5  -> PB12
+	 *  D6  -> PB13
+	 *  D7  -> PB5
+	 *  CK  -> PA5
+	 *  STP -> PC0
+	 *  NXT -> PH4
+	 *  DIR -> PI11
+	 */
+	ulpi_pins(GPIOA, GPIO3 | GPIO5);
+	ulpi_pins(GPIOB, GPIO0 | GPIO1 | GPIO5  | GPIO10 | GPIO11 | GPIO12 | GPIO13);
+	ulpi_pins(GPIOC, GPIO0);
+	ulpi_pins(GPIOH, GPIO4);
+	ulpi_pins(GPIOI, GPIO11);
 
 	/* USART TX */
 	gpio_mode_setup(GPIOC, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6);
 	gpio_set_af(GPIOC, GPIO_AF8, GPIO6);
+
+	/* Activity - USR1 */
+	gpio_mode_setup(GPIOJ, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO13);
+	gpio_clear(GPIOJ, GPIO13);
 }
 
 /**
@@ -157,31 +164,38 @@ void usbh_kbd_init(void)
 	tim_setup();
 
 	usart_init();
-	gpio_set(GPIOD,  GPIO13);
+	gpio_set(GPIOJ,  GPIO13);
 }
 
 usbh_backend *usbh_kbd_backend(void)
 {
-#if defined(USE_OTG_HS)
 	return USBH_STM32_OTG_HS;
-#else
-	return USBH_STM32_OTG_FS;
-#endif
+}
+
+static const usbh_backend_config _config = {
+	.chan_count = 12,
+	.priv_mem = 4096,
+	.speed = USBH_SPEED_HIGH,
+	.feature = USBH_PHY_EXT
+};
+
+const usbh_backend_config *usbh_kbd_config(void)
+{
+	return &_config;
 }
 
 void usbh_kbd_before_poll(void)
 {
 	/* Set busy led */
-	gpio_set(GPIOD,  GPIO14);
+	gpio_set(GPIOJ,  GPIO13);
 }
 
 void usbh_kbd_after_poll(void)
 {
 	unsigned i;
 
-	/* Clear busy led */
-	gpio_clear(GPIOD,  GPIO14);
+	gpio_clear(GPIOJ,  GPIO13);
 
-	/* dummy delay, approx 1ms interval */
+	/* dummy delay */
 	for (i = 0; i < 14903; i++) {}
 }
