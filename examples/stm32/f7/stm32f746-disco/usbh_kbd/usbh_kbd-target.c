@@ -28,7 +28,7 @@
 #include <unicore-mx/stm32/otg_fs.h>
 #include <unicore-mx/stm32/otg_hs.h>
 
-/* #define USE_OTG_HS */
+#define USE_OTG_HS
 
 static void clock_setup(void)
 {
@@ -38,15 +38,10 @@ static void clock_setup(void)
 	rcc_periph_clock_enable(RCC_GPIOB);
 	rcc_periph_clock_enable(RCC_GPIOC);
 	rcc_periph_clock_enable(RCC_GPIOH);
-
 	rcc_periph_clock_enable(RCC_USART6);
-#if defined(USE_OTG_HS)
-	rcc_periph_clock_enable(RCC_OTGHS);
-	rcc_periph_clock_enable(RCC_OTGHSULPI);
-#else
-	rcc_periph_clock_enable(RCC_OTGFS);
-#endif
 	rcc_periph_clock_enable(RCC_TIM6);
+
+    /* rcc for USB is enabled in usbh_init() */
 }
 
 #if defined(USE_OTG_HS)
@@ -92,6 +87,8 @@ static void gpio_setup(void)
 	/* OTG_FS */
 	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO11 | GPIO12);
 	gpio_set_af(GPIOA, GPIO_AF10, GPIO11 | GPIO12);
+	gpio_mode_setup(GPIOD, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO5);
+    gpio_clear(GPIOD, GPIO5);
 #endif
 
 	/* USART TX */

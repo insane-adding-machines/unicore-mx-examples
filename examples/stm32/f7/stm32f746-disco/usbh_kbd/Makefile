@@ -20,9 +20,13 @@
 BINARY = usbh_kbd
 
 VPATH += $(COMMON_DIR)/usbh_kbd
-CPPFLAGS += -I$(COMMON_DIR)/usbh_kbd
+CPPFLAGS += -I$(COMMON_DIR)/usbh_kbd -ggdb -g
 OBJS = usbh_kbd-target.o
 
 LDSCRIPT = ../stm32f746-disco.ld
 
 include ../../Makefile.include
+
+
+img:
+	arm-none-eabi-objcopy usbh_kbd.elf -O binary image.bin
