@@ -20,6 +20,6 @@
 
 BINARY = miniblink
 
-LDSCRIPT = ../BLENanoV3.ld
+LDSCRIPT = ../BLENanoV1_5.ld
 
 include ../../Makefile.include
