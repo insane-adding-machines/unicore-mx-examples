@@ -27,68 +27,98 @@
 #include "ramdisk.h"
 #include "msc-target.h"
 
-static const struct usb_endpoint_descriptor msc_endp[] = {{
-	.bLength = USB_DT_ENDPOINT_SIZE,
-	.bDescriptorType = USB_DT_ENDPOINT,
-	.bEndpointAddress = 0x01,
-	.bmAttributes = USB_ENDPOINT_ATTR_BULK,
-	.wMaxPacketSize = 64,
-	.bInterval = 0,
-}, {
-	.bLength = USB_DT_ENDPOINT_SIZE,
-	.bDescriptorType = USB_DT_ENDPOINT,
-	.bEndpointAddress = 0x82,
-	.bmAttributes = USB_ENDPOINT_ATTR_BULK,
-	.wMaxPacketSize = 64,
-	.bInterval = 0,
-}};
-
-static const struct usb_interface_descriptor msc_iface[] = {{
-	.bLength = USB_DT_INTERFACE_SIZE,
-	.bDescriptorType = USB_DT_INTERFACE,
-	.bInterfaceNumber = 0,
-	.bAlternateSetting = 0,
-	.bNumEndpoints = 2,
-	.bInterfaceClass = USB_CLASS_MSC,
-	.bInterfaceSubClass = USB_MSC_SUBCLASS_SCSI,
-	.bInterfaceProtocol = USB_MSC_PROTOCOL_BBB,
-	.iInterface = 0,
-	.endpoint = msc_endp,
-	.extra = NULL,
-	.extra_len = 0
-}};
-
-static const struct usb_interface ifaces[] = {{
-	.num_altsetting = 1,
-	.altsetting = msc_iface,
-}};
-
-static const uint8_t *usb_strings_ascii[] = {
-	(uint8_t *) "Black Sphere Technologies",
-	(uint8_t *) "MSC Demo",
-	(uint8_t *) "DEMO",
+static const struct usb_string_descriptor string_lang_list = {
+	.bLength = USB_DT_STRING_SIZE(1),
+	.bDescriptorType = USB_DT_STRING,
+	.wData = {
+		USB_LANGID_ENGLISH_UNITED_STATES
+	}
 };
 
-const struct usb_string_utf8_data usb_strings[] = {{
-	.data = usb_strings_ascii,
-	.count = 3,
-	.lang_id = USB_LANGID_ENGLISH_UNITED_STATES
-}, {
-	.data = NULL
-}};
+/* string descriptor string_[0..2] generated using usb-string.py */
 
-static const struct usb_config_descriptor config_descr[] = {{
-	.bLength = USB_DT_CONFIGURATION_SIZE,
-	.bDescriptorType = USB_DT_CONFIGURATION,
-	.wTotalLength = 0,
-	.bNumInterfaces = 1,
-	.bConfigurationValue = 1,
-	.iConfiguration = 0,
-	.bmAttributes = 0x80,
-	.bMaxPower = 0x32,
-	.interface = ifaces,
-	.string = usb_strings
-}};
+static const struct usb_string_descriptor string_0 = {
+	.bLength = USB_DT_STRING_SIZE(16),
+	.bDescriptorType = USB_DT_STRING,
+	/* Mad Resistor LLP */
+	.wData = {
+		0x004d, 0x0061, 0x0064, 0x0020, 0x0052, 0x0065, 0x0073, 0x0069,
+		0x0073, 0x0074, 0x006f, 0x0072, 0x0020, 0x004c, 0x004c, 0x0050
+	}
+};
+
+static const struct usb_string_descriptor string_1 = {
+	.bLength = USB_DT_STRING_SIZE(8),
+	.bDescriptorType = USB_DT_STRING,
+	/* MSC Demo */
+	.wData = {
+		0x004d, 0x0053, 0x0043, 0x0020, 0x0044, 0x0065, 0x006d, 0x006f
+	}
+};
+
+static const struct usb_string_descriptor string_2 = {
+	.bLength = USB_DT_STRING_SIZE(4),
+	.bDescriptorType = USB_DT_STRING,
+	/* DEMO */
+	.wData = {
+		0x0044, 0x0045, 0x004d, 0x004f
+	}
+};
+
+static const struct usb_string_descriptor **string_data[1] = {
+	(const struct usb_string_descriptor *[]){&string_0, &string_1, &string_2},
+};
+
+static const struct usbd_info_string string = {
+	.lang_list = &string_lang_list,
+	.count = 3,
+	.data = string_data
+};
+
+static const struct __attribute__((packed)) {
+	struct usb_config_descriptor desc;
+	struct usb_interface_descriptor msc_iface;
+	struct usb_endpoint_descriptor msc_endp[2];
+} config_descr = {
+	.desc = {
+		.bLength = USB_DT_CONFIGURATION_SIZE,
+		.bDescriptorType = USB_DT_CONFIGURATION,
+		.wTotalLength = sizeof(config_descr),
+		.bNumInterfaces = 1,
+		.bConfigurationValue = 1,
+		.iConfiguration = 0,
+		.bmAttributes = 0x80,
+		.bMaxPower = 0x32
+	},
+
+	.msc_iface = {
+		.bLength = USB_DT_INTERFACE_SIZE,
+		.bDescriptorType = USB_DT_INTERFACE,
+		.bInterfaceNumber = 0,
+		.bAlternateSetting = 0,
+		.bNumEndpoints = 2,
+		.bInterfaceClass = USB_CLASS_MSC,
+		.bInterfaceSubClass = USB_MSC_SUBCLASS_SCSI,
+		.bInterfaceProtocol = USB_MSC_PROTOCOL_BBB,
+		.iInterface = 0
+	},
+
+	.msc_endp = {{
+		.bLength = USB_DT_ENDPOINT_SIZE,
+		.bDescriptorType = USB_DT_ENDPOINT,
+		.bEndpointAddress = 0x01,
+		.bmAttributes = USB_ENDPOINT_ATTR_BULK,
+		.wMaxPacketSize = 64,
+		.bInterval = 0,
+	}, {
+		.bLength = USB_DT_ENDPOINT_SIZE,
+		.bDescriptorType = USB_DT_ENDPOINT,
+		.bEndpointAddress = 0x82,
+		.bmAttributes = USB_ENDPOINT_ATTR_BULK,
+		.wMaxPacketSize = 64,
+		.bInterval = 0,
+	}}
+};
 
 static const struct usb_device_descriptor dev_descr = {
 	.bLength = USB_DT_DEVICE_SIZE,
@@ -104,14 +134,20 @@ static const struct usb_device_descriptor dev_descr = {
 	.iManufacturer = 1,
 	.iProduct = 2,
 	.iSerialNumber = 3,
-	.bNumConfigurations = 1,
-
-	.config = config_descr,
-	.string = usb_strings
+	.bNumConfigurations = 1
 };
 
-/* Buffer to be used for setup requests. */
-static uint8_t usbd_control_buffer[128];
+static const struct usbd_info info = {
+	.device = {
+		.desc = &dev_descr,
+		.string = &string
+	},
+
+	.config = {{
+		.desc = (const struct usb_config_descriptor *) &config_descr,
+		.string = &string
+	}}
+};
 
 static usbd_msc *ms;
 
@@ -141,8 +177,7 @@ int main(void)
 {
 	msc_target_init();
 
-	usbd_device *msc_dev = usbd_init(msc_target_usb_driver(), NULL,
-				&dev_descr, usbd_control_buffer, sizeof(usbd_control_buffer));
+	usbd_device *msc_dev = usbd_init(msc_target_usb_driver(), NULL, &info);
 
 	ramdisk_init();
 

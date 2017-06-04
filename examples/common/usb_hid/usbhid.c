@@ -28,8 +28,8 @@
 
 /* Define this (in the Makefile CFLAGS) to include the DFU APP interface. */
 #ifdef INCLUDE_DFU_INTERFACE
-#include <unicore-mx/cm3/scb.h>
-#include <unicore-mx/usb/class/dfu.h>
+# include <unicore-mx/cm3/scb.h>
+# include <unicore-mx/usb/class/dfu.h>
 #endif
 
 static usbd_device *usbd_dev;
@@ -75,119 +75,144 @@ static const uint8_t hid_report_descriptor[] = {
 	0xc0        /* END_COLLECTION                       */
 };
 
-static const struct {
-	struct usb_hid_descriptor hid_descriptor;
-	struct {
-		uint8_t bReportDescriptorType;
-		uint16_t wDescriptorLength;
-	} __attribute__((packed)) hid_report;
-} __attribute__((packed)) hid_function = {
-	.hid_descriptor = {
-		.bLength = sizeof(hid_function),
-		.bDescriptorType = USB_DT_HID,
-		.bcdHID = 0x0100,
-		.bCountryCode = 0,
-		.bNumDescriptors = 1,
-	},
-	.hid_report = {
-		.bReportDescriptorType = USB_DT_REPORT,
-		.wDescriptorLength = sizeof(hid_report_descriptor),
+static const struct usb_string_descriptor string_lang_list = {
+	.bLength = USB_DT_STRING_SIZE(1),
+	.bDescriptorType = USB_DT_STRING,
+	.wData = {
+		USB_LANGID_ENGLISH_UNITED_STATES
 	}
 };
 
-const struct usb_endpoint_descriptor hid_endpoint = {
-	.bLength = USB_DT_ENDPOINT_SIZE,
-	.bDescriptorType = USB_DT_ENDPOINT,
-	.bEndpointAddress = 0x81,
-	.bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
-	.wMaxPacketSize = 4,
-	.bInterval = 0x02,
+/* string descriptor string_[0..2] generated using usb-string.py */
+
+static const struct usb_string_descriptor string_0 = {
+	.bLength = USB_DT_STRING_SIZE(16),
+	.bDescriptorType = USB_DT_STRING,
+	/* Mad Resistor LLP */
+	.wData = {
+		0x004d, 0x0061, 0x0064, 0x0020, 0x0052, 0x0065, 0x0073, 0x0069,
+		0x0073, 0x0074, 0x006f, 0x0072, 0x0020, 0x004c, 0x004c, 0x0050
+	}
 };
 
-const struct usb_interface_descriptor hid_iface = {
-	.bLength = USB_DT_INTERFACE_SIZE,
-	.bDescriptorType = USB_DT_INTERFACE,
-	.bInterfaceNumber = 0,
-	.bAlternateSetting = 0,
-	.bNumEndpoints = 1,
-	.bInterfaceClass = USB_CLASS_HID,
-	.bInterfaceSubClass = 1, /* boot */
-	.bInterfaceProtocol = 2, /* mouse */
-	.iInterface = 0,
-
-	.endpoint = &hid_endpoint,
-
-	.extra = &hid_function,
-	.extra_len = sizeof(hid_function),
+static const struct usb_string_descriptor string_1 = {
+	.bLength = USB_DT_STRING_SIZE(8),
+	.bDescriptorType = USB_DT_STRING,
+	/* HID Demo */
+	.wData = {
+		0x0048, 0x0049, 0x0044, 0x0020, 0x0044, 0x0065, 0x006d, 0x006f
+	}
 };
 
-#ifdef INCLUDE_DFU_INTERFACE
-const struct usb_dfu_descriptor dfu_function = {
-	.bLength = sizeof(struct usb_dfu_descriptor),
-	.bDescriptorType = DFU_FUNCTIONAL,
-	.bmAttributes = USB_DFU_CAN_DOWNLOAD | USB_DFU_WILL_DETACH,
-	.wDetachTimeout = 255,
-	.wTransferSize = 1024,
-	.bcdDFUVersion = 0x011A,
+static const struct usb_string_descriptor string_2 = {
+	.bLength = USB_DT_STRING_SIZE(4),
+	.bDescriptorType = USB_DT_STRING,
+	/* DEMO */
+	.wData = {
+		0x0044, 0x0045, 0x004d, 0x004f
+	}
 };
 
-const struct usb_interface_descriptor dfu_iface = {
-	.bLength = USB_DT_INTERFACE_SIZE,
-	.bDescriptorType = USB_DT_INTERFACE,
-	.bInterfaceNumber = 1,
-	.bAlternateSetting = 0,
-	.bNumEndpoints = 0,
-	.bInterfaceClass = 0xFE,
-	.bInterfaceSubClass = 1,
-	.bInterfaceProtocol = 1,
-	.iInterface = 0,
-
-	.extra = &dfu_function,
-	.extra_len = sizeof(dfu_function),
-};
-#endif
-
-const struct usb_interface ifaces[] = {{
-	.num_altsetting = 1,
-	.altsetting = &hid_iface,
-#ifdef INCLUDE_DFU_INTERFACE
-}, {
-	.num_altsetting = 1,
-	.altsetting = &dfu_iface,
-#endif
-}};
-
-static const uint8_t *usb_strings_ascii[] = {
-	(uint8_t *) "Black Sphere Technologies",
-	(uint8_t *) "HID Demo",
-	(uint8_t *) "DEMO",
+static const struct usb_string_descriptor **string_data[1] = {
+	(const struct usb_string_descriptor *[]){&string_0, &string_1, &string_2},
 };
 
-const struct usb_string_utf8_data usb_strings[] = {{
-	.data = usb_strings_ascii,
+static const struct usbd_info_string string = {
+	.lang_list = &string_lang_list,
 	.count = 3,
-	.lang_id = USB_LANGID_ENGLISH_UNITED_STATES
-}, {
-	.data = NULL
-}};
+	.data = string_data
+};
 
-const struct usb_config_descriptor config[] = {{
-	.bLength = USB_DT_CONFIGURATION_SIZE,
-	.bDescriptorType = USB_DT_CONFIGURATION,
-	.wTotalLength = 0,
+static const struct {
+	struct usb_config_descriptor config;
+	struct usb_interface_descriptor hid_iface;
+	struct {
+		struct usb_hid_descriptor hid_descriptor;
+		struct {
+			uint8_t bReportDescriptorType;
+			uint16_t wDescriptorLength;
+		} __attribute__((packed)) hid_report;
+	} __attribute__((packed)) hid_function;
+	struct usb_endpoint_descriptor hid_endpoint;
+
 #ifdef INCLUDE_DFU_INTERFACE
-	.bNumInterfaces = 2,
-#else
-	.bNumInterfaces = 1,
+	struct usb_interface_descriptor dfu_iface;
+	struct usb_dfu_descriptor dfu_function;
 #endif
-	.bConfigurationValue = 1,
-	.iConfiguration = 0,
-	.bmAttributes = 0xC0,
-	.bMaxPower = 0x32,
+} config_descr = {
+	.config = {
+		.bLength = USB_DT_CONFIGURATION_SIZE,
+		.bDescriptorType = USB_DT_CONFIGURATION,
+		.wTotalLength = sizeof(config_descr),
+#ifdef INCLUDE_DFU_INTERFACE
+		.bNumInterfaces = 2,
+#else
+		.bNumInterfaces = 1,
+#endif
+		.bConfigurationValue = 1,
+		.iConfiguration = 0,
+		.bmAttributes = 0xC0,
+		.bMaxPower = 0x32,
+	},
 
-	.interface = ifaces,
-	.string = usb_strings
-}};
+	.hid_iface = {
+		.bLength = USB_DT_INTERFACE_SIZE,
+		.bDescriptorType = USB_DT_INTERFACE,
+		.bInterfaceNumber = 0,
+		.bAlternateSetting = 0,
+		.bNumEndpoints = 1,
+		.bInterfaceClass = USB_CLASS_HID,
+		.bInterfaceSubClass = 1, /* boot */
+		.bInterfaceProtocol = 2, /* mouse */
+		.iInterface = 0,
+	},
+
+	.hid_function = {
+		.hid_descriptor = {
+			.bLength = sizeof(struct usb_hid_descriptor) + 3,
+			.bDescriptorType = USB_DT_HID,
+			.bcdHID = 0x0100,
+			.bCountryCode = 0,
+			.bNumDescriptors = 1,
+		},
+		.hid_report = {
+			.bReportDescriptorType = USB_DT_REPORT,
+			.wDescriptorLength = sizeof(hid_report_descriptor),
+		}
+	},
+
+	.hid_endpoint = {
+		.bLength = USB_DT_ENDPOINT_SIZE,
+		.bDescriptorType = USB_DT_ENDPOINT,
+		.bEndpointAddress = 0x81,
+		.bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
+		.wMaxPacketSize = 4,
+		.bInterval = 0x02,
+	},
+
+#ifdef INCLUDE_DFU_INTERFACE
+	.dfu_iface = {
+		.bLength = USB_DT_INTERFACE_SIZE,
+		.bDescriptorType = USB_DT_INTERFACE,
+		.bInterfaceNumber = 1,
+		.bAlternateSetting = 0,
+		.bNumEndpoints = 0,
+		.bInterfaceClass = 0xFE,
+		.bInterfaceSubClass = 1,
+		.bInterfaceProtocol = 1,
+		.iInterface = 0
+	},
+
+	.dfu_function = {
+		.bLength = sizeof(struct usb_dfu_descriptor),
+		.bDescriptorType = DFU_FUNCTIONAL,
+		.bmAttributes = USB_DFU_CAN_DOWNLOAD | USB_DFU_WILL_DETACH,
+		.wDetachTimeout = 255,
+		.wTransferSize = 1024,
+		.bcdDFUVersion = 0x011A,
+	}
+#endif
+};
 
 const struct usb_device_descriptor dev_descr = {
 	.bLength = USB_DT_DEVICE_SIZE,
@@ -203,14 +228,20 @@ const struct usb_device_descriptor dev_descr = {
 	.iManufacturer = 1,
 	.iProduct = 2,
 	.iSerialNumber = 3,
-	.bNumConfigurations = 1,
-
-	.config = config,
-	.string = usb_strings
+	.bNumConfigurations = 1
 };
 
-/* Buffer used for control requests. */
-uint8_t usbd_control_buffer[128];
+static const struct usbd_info info = {
+	.device = {
+		.desc = &dev_descr,
+		.string = &string
+	},
+
+	.config = {{
+		.desc = (const struct usb_config_descriptor *) &config_descr,
+		.string = &string
+	}}
+};
 
 static bool hid_setup_callback(usbd_device *dev,
 				const struct usb_setup_data *setup_data)
@@ -232,13 +263,13 @@ static bool hid_setup_callback(usbd_device *dev,
 void __attribute__((weak))
 usbhid_detach_complete_before_scb_reset_core(void) { /* empty */ }
 
-static void dfu_detach_complete()
+static void dfu_detach_complete(void)
 {
 	usbhid_detach_complete_before_scb_reset_core();
-	scb_reset_core();
+	scb_reset_system();
 }
 
-bool dfu_control_request(usbd_device *dev,
+static bool dfu_control_request(usbd_device *dev,
 					const struct usb_setup_data *setup_data)
 {
 	(void)dev;
@@ -250,7 +281,7 @@ bool dfu_control_request(usbd_device *dev,
 
 	/* no data stage - dfu_detach_complete will be called in status stage */
 	usbd_ep0_transfer(dev, setup_data, NULL, 0,
-		(usbd_transfer_control_handle_callback) dfu_detach_complete);
+		(usbd_control_transfer_callback) dfu_detach_complete);
 	return true;
 }
 #endif
@@ -265,7 +296,7 @@ static void setup_callback(usbd_device *dev, uint8_t ep_addr,
 	}
 
 #ifdef INCLUDE_DFU_INTERFACE
-	if (hid_control_request(dev, arg)) {
+	if (dfu_control_request(dev, setup_data)) {
 		return;
 	}
 #endif
@@ -300,8 +331,7 @@ int main(void)
 {
 	usbhid_target_init();
 
-	usbd_dev = usbd_init(usbhid_target_usb_driver(), NULL, &dev_descr,
-		usbd_control_buffer, sizeof(usbd_control_buffer));
+	usbd_dev = usbd_init(usbhid_target_usb_driver(), NULL, &info);
 
 	usbd_register_set_config_callback(usbd_dev, hid_set_config);
 	usbd_register_setup_callback(usbd_dev, setup_callback);

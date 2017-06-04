@@ -21,52 +21,84 @@
 #include <unicore-mx/usbd/usbd.h>
 #include "usb_simple-target.h"
 
-const struct usb_interface_descriptor iface = {
-	.bLength = USB_DT_INTERFACE_SIZE,
-	.bDescriptorType = USB_DT_INTERFACE,
-	.bInterfaceNumber = 0,
-	.bAlternateSetting = 0,
-	.bNumEndpoints = 0,
-	.bInterfaceClass = 0xFF,
-	.bInterfaceSubClass = 0,
-	.bInterfaceProtocol = 0,
-	.iInterface = 0,
+static const struct usb_string_descriptor string_lang_list = {
+	.bLength = USB_DT_STRING_SIZE(1),
+	.bDescriptorType = USB_DT_STRING,
+	.wData = {
+		USB_LANGID_ENGLISH_UNITED_STATES
+	}
 };
 
-const struct usb_interface ifaces[] = {{
-	.num_altsetting = 1,
-	.altsetting = &iface,
-}};
+/* string descriptor string_[0..2] generated using usb-string.py */
 
-const uint8_t *usb_strings_ascii[] = {
-	(uint8_t *) "Black Sphere Technologies",
-	(uint8_t *) "Simple Device",
-	(uint8_t *) "1001",
+static const struct usb_string_descriptor string_0 = {
+	.bLength = USB_DT_STRING_SIZE(16),
+	.bDescriptorType = USB_DT_STRING,
+	/* Mad Resistor LLP */
+	.wData = {
+		0x004d, 0x0061, 0x0064, 0x0020, 0x0052, 0x0065, 0x0073, 0x0069,
+		0x0073, 0x0074, 0x006f, 0x0072, 0x0020, 0x004c, 0x004c, 0x0050
+	}
 };
 
-const struct usb_string_utf8_data usb_strings[] = {{
-	.data = usb_strings_ascii,
+static const struct usb_string_descriptor string_1 = {
+	.bLength = USB_DT_STRING_SIZE(13),
+	.bDescriptorType = USB_DT_STRING,
+	/* Simple Device */
+	.wData = {
+		0x0053, 0x0069, 0x006d, 0x0070, 0x006c, 0x0065, 0x0020, 0x0044,
+		0x0065, 0x0076, 0x0069, 0x0063, 0x0065
+	}
+};
+
+static const struct usb_string_descriptor string_2 = {
+	.bLength = USB_DT_STRING_SIZE(4),
+	.bDescriptorType = USB_DT_STRING,
+	/* 1001 */
+	.wData = {
+		0x0031, 0x0030, 0x0030, 0x0031
+	}
+};
+
+static const struct usb_string_descriptor **string_data[1] = {
+	(const struct usb_string_descriptor *[]){&string_0, &string_1, &string_2},
+};
+
+static const struct usbd_info_string string = {
+	.lang_list = &string_lang_list,
 	.count = 3,
-	.lang_id = USB_LANGID_ENGLISH_UNITED_STATES
-}, {
-	.data = NULL
-}};
+	.data = string_data
+};
 
-const struct usb_config_descriptor config[] = {{
-	.bLength = USB_DT_CONFIGURATION_SIZE,
-	.bDescriptorType = USB_DT_CONFIGURATION,
-	.wTotalLength = 0,
-	.bNumInterfaces = 1,
-	.bConfigurationValue = 1,
-	.iConfiguration = 0,
-	.bmAttributes = 0x80,
-	.bMaxPower = 0x32,
+const struct __attribute__((packed)) {
+	struct usb_config_descriptor config;
+	struct usb_interface_descriptor iface;
+} config_desc = {
+	.config = {
+		.bLength = USB_DT_CONFIGURATION_SIZE,
+		.bDescriptorType = USB_DT_CONFIGURATION,
+		.wTotalLength = sizeof(config_desc),
+		.bNumInterfaces = 1,
+		.bConfigurationValue = 1,
+		.iConfiguration = 0,
+		.bmAttributes = 0x80,
+		.bMaxPower = 0x32,
+	},
 
-	.interface = ifaces,
-	.string = usb_strings
-}};
+	.iface = {
+		.bLength = USB_DT_INTERFACE_SIZE,
+		.bDescriptorType = USB_DT_INTERFACE,
+		.bInterfaceNumber = 0,
+		.bAlternateSetting = 0,
+		.bNumEndpoints = 0,
+		.bInterfaceClass = 0xFF,
+		.bInterfaceSubClass = 0,
+		.bInterfaceProtocol = 0,
+		.iInterface = 0,
+	}
+};
 
-const struct usb_device_descriptor dev = {
+const struct usb_device_descriptor dev_desc = {
 	.bLength = USB_DT_DEVICE_SIZE,
 	.bDescriptorType = USB_DT_DEVICE,
 	.bcdUSB = 0x0200,
@@ -80,14 +112,20 @@ const struct usb_device_descriptor dev = {
 	.iManufacturer = 1,
 	.iProduct = 2,
 	.iSerialNumber = 3,
-	.bNumConfigurations = 1,
-
-	.config = config,
-	.string = usb_strings
+	.bNumConfigurations = 1
 };
 
-/* Buffer to be used for control requests. */
-uint8_t usbd_control_buffer[128];
+static const struct usbd_info info = {
+	.device = {
+		.desc = &dev_desc,
+		.string = &string
+	},
+
+	.config = {{
+		.desc = (const struct usb_config_descriptor *) &config_desc,
+		.string = &string
+	}}
+};
 
 static void simple_setup_callback(usbd_device *usbd_dev, uint8_t ep_addr,
 						const struct usb_setup_data *setup_data)
@@ -109,8 +147,7 @@ int main(void)
 
 	usb_simple_target_init();
 
-	usbd_dev = usbd_init(usb_simple_target_usb_driver(), NULL, &dev,
-				usbd_control_buffer, sizeof(usbd_control_buffer));
+	usbd_dev = usbd_init(usb_simple_target_usb_driver(), NULL, &info);
 
 	usbd_register_setup_callback(usbd_dev, simple_setup_callback);
 

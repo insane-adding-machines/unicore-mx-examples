@@ -29,102 +29,163 @@
 #define CMD_SETADDR	0x21
 #define CMD_ERASE	0x41
 
-/* We need a special large control buffer for this device: */
-uint8_t usbd_control_buffer[1024];
+#define TRANSFER_SIZE 1024
 
 static enum dfu_state usbdfu_state = STATE_DFU_IDLE;
 
 static struct {
-	uint8_t buf[sizeof(usbd_control_buffer)];
+	uint8_t buf[TRANSFER_SIZE];
 	uint16_t len;
 	uint32_t addr;
 	uint16_t blocknum;
 } prog;
 
-const struct usb_dfu_descriptor dfu_function = {
-	.bLength = sizeof(struct usb_dfu_descriptor),
-	.bDescriptorType = DFU_FUNCTIONAL,
-	.bmAttributes = USB_DFU_CAN_DOWNLOAD | USB_DFU_WILL_DETACH,
-	.wDetachTimeout = 255,
-	.wTransferSize = 1024,
-	.bcdDFUVersion = 0x011A,
+static const struct usb_string_descriptor string_lang_list = {
+	.bLength = USB_DT_STRING_SIZE(2),
+	.bDescriptorType = USB_DT_STRING,
+	.wData = {
+		USB_LANGID_ENGLISH_UNITED_STATES,
+		USB_LANGID_HINDI
+	}
 };
 
-const struct usb_interface_descriptor iface = {
-	.bLength = USB_DT_INTERFACE_SIZE,
-	.bDescriptorType = USB_DT_INTERFACE,
-	.bInterfaceNumber = 0,
-	.bAlternateSetting = 0,
-	.bNumEndpoints = 0,
-	.bInterfaceClass = 0xFE, /* Device Firmware Upgrade */
-	.bInterfaceSubClass = 1,
-	.bInterfaceProtocol = 2,
+/* string descriptor string_[0..5] generated using usb-string.py */
 
-	/* The ST Microelectronics DfuSe application needs this string.
-	 * The format isn't documented... */
-	.iInterface = 4,
-
-	.extra = &dfu_function,
-	.extra_len = sizeof(dfu_function),
+static const struct usb_string_descriptor string_0 = {
+	.bLength = USB_DT_STRING_SIZE(16),
+	.bDescriptorType = USB_DT_STRING,
+	/* Mad Resistor LLP */
+	.wData = {
+		0x004d, 0x0061, 0x0064, 0x0020, 0x0052, 0x0065, 0x0073, 0x0069,
+		0x0073, 0x0074, 0x006f, 0x0072, 0x0020, 0x004c, 0x004c, 0x0050
+	}
 };
 
-const struct usb_interface ifaces[] = {{
-	.num_altsetting = 1,
-	.altsetting = &iface,
-}};
+static const struct usb_string_descriptor string_1 = {
+	.bLength = USB_DT_STRING_SIZE(8),
+	.bDescriptorType = USB_DT_STRING,
+	/* DFU Demo */
+	.wData = {
+		0x0044, 0x0046, 0x0055, 0x0020, 0x0044, 0x0065, 0x006d, 0x006f
+	}
+};
 
-/* This string is used by ST Microelectronics' DfuSe utility. */
-/* FIXME: this is ST Specific */
-#define ST_FLASH_DETAIL "@Internal Flash   /0x08000000/8*001Ka,56*001Kg"
-
-const uint8_t *usb_strings_english[] = {
-	(uint8_t *) "Black Sphere Technologies",
-	(uint8_t *) "DFU Demo",
-	(uint8_t *) "DEMO",
-	(uint8_t *) ST_FLASH_DETAIL
+static const struct usb_string_descriptor string_2 = {
+	.bLength = USB_DT_STRING_SIZE(4),
+	.bDescriptorType = USB_DT_STRING,
+	/* DEMO */
+	.wData = {
+		0x0044, 0x0045, 0x004d, 0x004f
+	}
 };
 
 /*
- * Black = काला
- * Sphere = गोला
- * Technologies = प्रौद्योगिकी
+ * Mad = पागल
+ * Resistor = प्रतिरोधक
+ * LLP = एलएलपी
  * DFU = डीएफयू
  * Demo, DEMO = नमूना
  */
-const uint8_t *usb_strings_hindi[] = {
-	(uint8_t *) "काला गोला प्रौद्योगिकी",
-	(uint8_t *) "डीएफयू नमूना",
-	(uint8_t *) "नमूना",
-	(uint8_t *) ST_FLASH_DETAIL
+
+static const struct usb_string_descriptor string_3 = {
+	.bLength = USB_DT_STRING_SIZE(23),
+	.bDescriptorType = USB_DT_STRING,
+	/* पागल  प्रतिरोधक  एलएलपी */
+	.wData = {
+		0x092a, 0x093e, 0x0917, 0x0932, 0x0020, 0x0020, 0x092a, 0x094d,
+		0x0930, 0x0924, 0x093f, 0x0930, 0x094b, 0x0927, 0x0915, 0x0020,
+		0x0020, 0x090f, 0x0932, 0x090f, 0x0932, 0x092a, 0x0940
+	}
 };
 
-const struct usb_string_utf8_data usb_strings[] = {{
-	.data = usb_strings_english,
+static const struct usb_string_descriptor string_4 = {
+	.bLength = USB_DT_STRING_SIZE(12),
+	.bDescriptorType = USB_DT_STRING,
+	/* डीएफयू नमूना */
+	.wData = {
+		0x0921, 0x0940, 0x090f, 0x092b, 0x092f, 0x0942, 0x0020, 0x0928,
+		0x092e, 0x0942, 0x0928, 0x093e
+	}
+};
+
+static const struct usb_string_descriptor string_5 = {
+	.bLength = USB_DT_STRING_SIZE(5),
+	.bDescriptorType = USB_DT_STRING,
+	/* नमूना */
+	.wData = {
+		0x0928, 0x092e, 0x0942, 0x0928, 0x093e
+	}
+};
+
+/* This string is used by ST Microelectronics' DfuSe utility. */
+/* FIXME: this is ST Specific */
+static const struct usb_string_descriptor string_st_flash_detail = {
+	.bLength = USB_DT_STRING_SIZE(46),
+	.bDescriptorType = USB_DT_STRING,
+	/* @Internal Flash   /0x08000000/8*001Ka,56*001Kg */
+	.wData = {
+		0x0040, 0x0049, 0x006e, 0x0074, 0x0065, 0x0072, 0x006e, 0x0061,
+		0x006c, 0x0020, 0x0046, 0x006c, 0x0061, 0x0073, 0x0068, 0x0020,
+		0x0020, 0x0020, 0x002f, 0x0030, 0x0078, 0x0030, 0x0038, 0x0030,
+		0x0030, 0x0030, 0x0030, 0x0030, 0x0030, 0x002f, 0x0038, 0x002a,
+		0x0030, 0x0030, 0x0031, 0x004b, 0x0061, 0x002c, 0x0035, 0x0036,
+		0x002a, 0x0030, 0x0030, 0x0031, 0x004b, 0x0067
+	}
+};
+
+static const struct usb_string_descriptor **string_data[2] = {
+	(const struct usb_string_descriptor *[]){&string_0, &string_1, &string_2, &string_st_flash_detail},
+	(const struct usb_string_descriptor *[]){&string_3, &string_4, &string_5, &string_st_flash_detail}
+};
+
+static const struct usbd_info_string string = {
+	.lang_list = &string_lang_list,
 	.count = 4,
-	.lang_id = USB_LANGID_ENGLISH_UNITED_STATES
-}, {
-	.data = usb_strings_hindi,
-	.count = 4,
-	.lang_id = USB_LANGID_HINDI
-}, {
-	.data = NULL
-}};
+	.data = string_data
+};
 
-const struct usb_config_descriptor config[] = {{
-	.bLength = USB_DT_CONFIGURATION_SIZE,
-	.bDescriptorType = USB_DT_CONFIGURATION,
-	.wTotalLength = 0,
-	.bNumInterfaces = 1,
-	.bConfigurationValue = 1,
-	.iConfiguration = 0,
-	.bmAttributes = 0xC0,
-	.bMaxPower = 0x32,
+static const struct __attribute__((packed)) {
+	const struct usb_config_descriptor config;
+	struct usb_interface_descriptor iface;
+	const struct usb_dfu_descriptor dfu_function;
+} config_desc = {
+	.config = {
+		.bLength = USB_DT_CONFIGURATION_SIZE,
+		.bDescriptorType = USB_DT_CONFIGURATION,
+		.wTotalLength = sizeof(config_desc),
+		.bNumInterfaces = 1,
+		.bConfigurationValue = 1,
+		.iConfiguration = 0,
+		.bmAttributes = 0xC0,
+		.bMaxPower = 0x32
+	},
 
-	.interface = ifaces,
-	.string = usb_strings
-}};
+	.iface = {
+		.bLength = USB_DT_INTERFACE_SIZE,
+		.bDescriptorType = USB_DT_INTERFACE,
+		.bInterfaceNumber = 0,
+		.bAlternateSetting = 0,
+		.bNumEndpoints = 0,
+		.bInterfaceClass = 0xFE, /* Device Firmware Upgrade */
+		.bInterfaceSubClass = 1,
+		.bInterfaceProtocol = 2,
 
-const struct usb_device_descriptor dev = {
+		/* The ST Microelectronics DfuSe application needs this string.
+		 * The format isn't documented... */
+		.iInterface = 4,
+	},
+
+	.dfu_function = {
+		.bLength = sizeof(struct usb_dfu_descriptor),
+		.bDescriptorType = DFU_FUNCTIONAL,
+		.bmAttributes = USB_DFU_CAN_DOWNLOAD | USB_DFU_WILL_DETACH,
+		.wDetachTimeout = 255,
+		.wTransferSize = TRANSFER_SIZE,
+		.bcdDFUVersion = 0x011A,
+	}
+};
+
+const struct usb_device_descriptor dev_desc = {
 	.bLength = USB_DT_DEVICE_SIZE,
 	.bDescriptorType = USB_DT_DEVICE,
 	.bcdUSB = 0x0200,
@@ -138,10 +199,19 @@ const struct usb_device_descriptor dev = {
 	.iManufacturer = 1,
 	.iProduct = 2,
 	.iSerialNumber = 3,
-	.bNumConfigurations = 1,
+	.bNumConfigurations = 1
+};
 
-	.config = config,
-	.string = usb_strings
+static const struct usbd_info info = {
+	.device = {
+		.desc = &dev_desc,
+		.string = &string
+	},
+
+	.config = {{
+		.desc = (const struct usb_config_descriptor *) &config_desc,
+		.string = &string
+	}}
 };
 
 static uint8_t usbdfu_getstatus(uint32_t *bwPollTimeout)
@@ -188,7 +258,7 @@ static usbd_control_transfer_feedback usbdfu_getstatus_complete(
 			}
 		} else {
 			uint32_t baseaddr = prog.addr + ((prog.blocknum - 2) *
-				       dfu_function.wTransferSize);
+				       TRANSFER_SIZE);
 			usbdfu_target_flash_write(baseaddr, prog.buf, prog.len);
 		}
 		usbdfu_target_flash_lock();
@@ -250,14 +320,14 @@ static void usbdfu_setup_callback(usbd_device *usbd_dev, uint8_t ep_addr,
 	break;
 	case DFU_GETSTATUS: {
 		uint32_t bwPollTimeout = 0; /* 24-bit integer in DFU class spec */
-		uint8_t *buf = usbd_control_buffer;
+		static uint8_t buf[6];
 		buf[0] = usbdfu_getstatus(&bwPollTimeout);
 		buf[1] = bwPollTimeout & 0xFF;
 		buf[2] = (bwPollTimeout >> 8) & 0xFF;
 		buf[3] = (bwPollTimeout >> 16) & 0xFF;
 		buf[4] = usbdfu_state;
 		buf[5] = 0; /* iString not used here */
-		usbd_ep0_transfer(usbd_dev, setup_data, buf, 6, usbdfu_getstatus_complete);
+		usbd_ep0_transfer(usbd_dev, setup_data, buf, sizeof(buf), usbdfu_getstatus_complete);
 	return;
 	}
 	case DFU_GETSTATE:{
@@ -278,8 +348,7 @@ int main(void)
 
 	usbdfu_target_init();
 
-	usbd_dev = usbd_init(usbdfu_target_usb_driver(), NULL, &dev,
-		usbd_control_buffer, sizeof(usbd_control_buffer));
+	usbd_dev = usbd_init(usbdfu_target_usb_driver(), NULL, &info);
 
 	usbd_register_setup_callback(usbd_dev, usbdfu_setup_callback);
 

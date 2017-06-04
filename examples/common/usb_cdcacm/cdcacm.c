@@ -23,156 +23,7 @@
 #include <unicore-mx/usb/class/cdc.h>
 #include "cdcacm-target.h"
 
-/*
- * This notification endpoint isn't implemented. According to CDC spec its
- * optional, but its absence causes a NULL pointer dereference in Linux
- * cdc_acm driver.
- */
-static const struct usb_endpoint_descriptor comm_endp[] = {{
-	.bLength = USB_DT_ENDPOINT_SIZE,
-	.bDescriptorType = USB_DT_ENDPOINT,
-	.bEndpointAddress = 0x83,
-	.bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
-	.wMaxPacketSize = 16,
-	.bInterval = 255,
-}};
-
-static const struct usb_endpoint_descriptor data_endp[] = {{
-	.bLength = USB_DT_ENDPOINT_SIZE,
-	.bDescriptorType = USB_DT_ENDPOINT,
-	.bEndpointAddress = 0x01,
-	.bmAttributes = USB_ENDPOINT_ATTR_BULK,
-	.wMaxPacketSize = 64,
-	.bInterval = 1,
-}, {
-	.bLength = USB_DT_ENDPOINT_SIZE,
-	.bDescriptorType = USB_DT_ENDPOINT,
-	.bEndpointAddress = 0x82,
-	.bmAttributes = USB_ENDPOINT_ATTR_BULK,
-	.wMaxPacketSize = 64,
-	.bInterval = 1,
-}};
-
-static const struct {
-	struct usb_cdc_header_descriptor header;
-	struct usb_cdc_call_management_descriptor call_mgmt;
-	struct usb_cdc_acm_descriptor acm;
-	struct usb_cdc_union_descriptor cdc_union;
-} __attribute__((packed)) cdcacm_functional_descriptors = {
-	.header = {
-		.bFunctionLength = sizeof(struct usb_cdc_header_descriptor),
-		.bDescriptorType = CS_INTERFACE,
-		.bDescriptorSubtype = USB_CDC_TYPE_HEADER,
-		.bcdCDC = 0x0110,
-	},
-	.call_mgmt = {
-		.bFunctionLength =
-			sizeof(struct usb_cdc_call_management_descriptor),
-		.bDescriptorType = CS_INTERFACE,
-		.bDescriptorSubtype = USB_CDC_TYPE_CALL_MANAGEMENT,
-		.bmCapabilities = 0,
-		.bDataInterface = 1,
-	},
-	.acm = {
-		.bFunctionLength = sizeof(struct usb_cdc_acm_descriptor),
-		.bDescriptorType = CS_INTERFACE,
-		.bDescriptorSubtype = USB_CDC_TYPE_ACM,
-		.bmCapabilities = 0,
-	},
-	.cdc_union = {
-		.bFunctionLength = sizeof(struct usb_cdc_union_descriptor),
-		.bDescriptorType = CS_INTERFACE,
-		.bDescriptorSubtype = USB_CDC_TYPE_UNION,
-		.bControlInterface = 0,
-		.bSubordinateInterface0 = 1,
-	 },
-};
-
-static const struct usb_interface_descriptor comm_iface[] = {{
-	.bLength = USB_DT_INTERFACE_SIZE,
-	.bDescriptorType = USB_DT_INTERFACE,
-	.bInterfaceNumber = 0,
-	.bAlternateSetting = 0,
-	.bNumEndpoints = 1,
-	.bInterfaceClass = USB_CLASS_CDC,
-	.bInterfaceSubClass = USB_CDC_SUBCLASS_ACM,
-	.bInterfaceProtocol = USB_CDC_PROTOCOL_AT,
-	.iInterface = 0,
-
-	.endpoint = comm_endp,
-
-	.extra = &cdcacm_functional_descriptors,
-	.extra_len = sizeof(cdcacm_functional_descriptors),
-}};
-
-static const struct usb_interface_descriptor data_iface[] = {{
-	.bLength = USB_DT_INTERFACE_SIZE,
-	.bDescriptorType = USB_DT_INTERFACE,
-	.bInterfaceNumber = 1,
-	.bAlternateSetting = 0,
-	.bNumEndpoints = 2,
-	.bInterfaceClass = USB_CLASS_DATA,
-	.bInterfaceSubClass = 0,
-	.bInterfaceProtocol = 0,
-	.iInterface = 0,
-
-	.endpoint = data_endp,
-}};
-
-static const struct usb_interface ifaces[] = {{
-	.num_altsetting = 1,
-	.altsetting = comm_iface,
-}, {
-	.num_altsetting = 1,
-	.altsetting = data_iface,
-}};
-
-const uint8_t *usb_strings_english[] = {
-	(uint8_t *) "Black Sphere Technologies",
-	(uint8_t *) "CDC-ACM Demo",
-	(uint8_t *) "DEMO",
-};
-
-/*
- * Black = काला
- * Sphere = गोला
- * Technologies = प्रौद्योगिकी
- * CDC-ACM = सीडीसी-एसीएम
- * Demo, DEMO = नमूना
- */
-const uint8_t *usb_strings_hindi[] = {
-	(uint8_t *) "काला गोला प्रौद्योगिकी",
-	(uint8_t *) "सीडीसी-एसीएम नमूना",
-	(uint8_t *) "नमूना"
-};
-
-const struct usb_string_utf8_data usb_strings[] = {{
-	.data = usb_strings_english,
-	.count = 3,
-	.lang_id = USB_LANGID_ENGLISH_UNITED_STATES
-}, {
-	.data = usb_strings_hindi,
-	.count = 3,
-	.lang_id = USB_LANGID_HINDI
-}, {
-	.data = NULL
-}};
-
-static const struct usb_config_descriptor config[] = {{
-	.bLength = USB_DT_CONFIGURATION_SIZE,
-	.bDescriptorType = USB_DT_CONFIGURATION,
-	.wTotalLength = 0,
-	.bNumInterfaces = 2,
-	.bConfigurationValue = 1,
-	.iConfiguration = 0,
-	.bmAttributes = 0x80,
-	.bMaxPower = 0x32,
-
-	.interface = ifaces,
-	.string = usb_strings
-}};
-
-static const struct usb_device_descriptor dev = {
+static const struct usb_device_descriptor dev_desc = {
 	.bLength = USB_DT_DEVICE_SIZE,
 	.bDescriptorType = USB_DT_DEVICE,
 	.bcdUSB = 0x0200,
@@ -187,13 +38,221 @@ static const struct usb_device_descriptor dev = {
 	.iProduct = 2,
 	.iSerialNumber = 3,
 	.bNumConfigurations = 1,
-
-	.config = config,
-	.string = usb_strings
 };
 
-/* Buffer to be used for control requests. */
-uint8_t usbd_control_buffer[128] __attribute__((aligned(2)));
+static const struct __attribute__((packed)) {
+	struct usb_config_descriptor config;
+	const struct usb_interface_descriptor comm_iface;
+	const struct {
+		struct usb_cdc_header_descriptor header;
+		struct usb_cdc_call_management_descriptor call_mgmt;
+		struct usb_cdc_acm_descriptor acm;
+		struct usb_cdc_union_descriptor cdc_union;
+	} cdcacm_functional_descriptors;
+	struct usb_endpoint_descriptor comm_endp;
+
+	struct usb_interface_descriptor data_iface;
+	struct usb_endpoint_descriptor data_endp[2];
+} config_desc = {
+	.config = {
+		.bLength = USB_DT_CONFIGURATION_SIZE,
+		.bDescriptorType = USB_DT_CONFIGURATION,
+		.wTotalLength = sizeof(config_desc),
+		.bNumInterfaces = 2,
+		.bConfigurationValue = 1,
+		.iConfiguration = 0,
+		.bmAttributes = 0x80,
+		.bMaxPower = 0x32
+	},
+
+	.comm_iface = {
+		.bLength = USB_DT_INTERFACE_SIZE,
+		.bDescriptorType = USB_DT_INTERFACE,
+		.bInterfaceNumber = 0,
+		.bAlternateSetting = 0,
+		.bNumEndpoints = 1,
+		.bInterfaceClass = USB_CLASS_CDC,
+		.bInterfaceSubClass = USB_CDC_SUBCLASS_ACM,
+		.bInterfaceProtocol = USB_CDC_PROTOCOL_AT,
+		.iInterface = 0,
+	},
+
+	.cdcacm_functional_descriptors = {
+		.header = {
+			.bFunctionLength = sizeof(struct usb_cdc_header_descriptor),
+			.bDescriptorType = CS_INTERFACE,
+			.bDescriptorSubtype = USB_CDC_TYPE_HEADER,
+			.bcdCDC = 0x0110,
+		},
+		.call_mgmt = {
+			.bFunctionLength =
+				sizeof(struct usb_cdc_call_management_descriptor),
+			.bDescriptorType = CS_INTERFACE,
+			.bDescriptorSubtype = USB_CDC_TYPE_CALL_MANAGEMENT,
+			.bmCapabilities = 0,
+			.bDataInterface = 1,
+		},
+		.acm = {
+			.bFunctionLength = sizeof(struct usb_cdc_acm_descriptor),
+			.bDescriptorType = CS_INTERFACE,
+			.bDescriptorSubtype = USB_CDC_TYPE_ACM,
+			.bmCapabilities = 0,
+		},
+		.cdc_union = {
+			.bFunctionLength = sizeof(struct usb_cdc_union_descriptor),
+			.bDescriptorType = CS_INTERFACE,
+			.bDescriptorSubtype = USB_CDC_TYPE_UNION,
+			.bControlInterface = 0,
+			.bSubordinateInterface0 = 1,
+		 },
+	},
+
+	/*
+	 * This notification endpoint isn't implemented. According to CDC spec its
+	 * optional, but its absence causes a NULL pointer dereference in Linux
+	 * cdc_acm driver.
+	 */
+	.comm_endp = {
+		.bLength = USB_DT_ENDPOINT_SIZE,
+		.bDescriptorType = USB_DT_ENDPOINT,
+		.bEndpointAddress = 0x83,
+		.bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
+		.wMaxPacketSize = 16,
+		.bInterval = 255,
+	},
+
+	.data_iface = {
+		.bLength = USB_DT_INTERFACE_SIZE,
+		.bDescriptorType = USB_DT_INTERFACE,
+		.bInterfaceNumber = 1,
+		.bAlternateSetting = 0,
+		.bNumEndpoints = 2,
+		.bInterfaceClass = USB_CLASS_DATA,
+		.bInterfaceSubClass = 0,
+		.bInterfaceProtocol = 0,
+		.iInterface = 0,
+	},
+
+	.data_endp = {{
+		.bLength = USB_DT_ENDPOINT_SIZE,
+		.bDescriptorType = USB_DT_ENDPOINT,
+		.bEndpointAddress = 0x01,
+		.bmAttributes = USB_ENDPOINT_ATTR_BULK,
+		.wMaxPacketSize = 64,
+		.bInterval = 1,
+	}, {
+		.bLength = USB_DT_ENDPOINT_SIZE,
+		.bDescriptorType = USB_DT_ENDPOINT,
+		.bEndpointAddress = 0x82,
+		.bmAttributes = USB_ENDPOINT_ATTR_BULK,
+		.wMaxPacketSize = 64,
+		.bInterval = 1,
+	}},
+};
+
+static const struct usb_string_descriptor string_lang_list = {
+	.bLength = USB_DT_STRING_SIZE(2),
+	.bDescriptorType = USB_DT_STRING,
+	.wData = {
+		USB_LANGID_ENGLISH_UNITED_STATES,
+		USB_LANGID_HINDI
+	}
+};
+
+/* string descriptor string_[0..5] generated using usb-string.py */
+
+static const struct usb_string_descriptor string_0 = {
+	.bLength = USB_DT_STRING_SIZE(16),
+	.bDescriptorType = USB_DT_STRING,
+	/* Mad Resistor LLP */
+	.wData = {
+		0x004d, 0x0061, 0x0064, 0x0020, 0x0052, 0x0065, 0x0073, 0x0069,
+		0x0073, 0x0074, 0x006f, 0x0072, 0x0020, 0x004c, 0x004c, 0x0050
+	}
+};
+
+
+static const struct usb_string_descriptor string_1 = {
+	.bLength = USB_DT_STRING_SIZE(12),
+	.bDescriptorType = USB_DT_STRING,
+	/* CDC-ACM Demo */
+	.wData = {
+		0x0043, 0x0044, 0x0043, 0x002d, 0x0041, 0x0043, 0x004d, 0x0020,
+		0x0044, 0x0065, 0x006d, 0x006f
+	}
+};
+
+static const struct usb_string_descriptor string_2 = {
+	.bLength = USB_DT_STRING_SIZE(4),
+	.bDescriptorType = USB_DT_STRING,
+	/* DEMO */
+	.wData = {
+		0x0044, 0x0045, 0x004d, 0x004f
+	}
+};
+
+/*
+ * Mad = पागल
+ * Resistor = प्रतिरोधक
+ * LLP = एलएलपी
+ * CDC-ACM = सीडीसी-एसीएम
+ * Demo, DEMO = नमूना
+ */
+
+static const struct usb_string_descriptor string_3 = {
+	.bLength = USB_DT_STRING_SIZE(23),
+	.bDescriptorType = USB_DT_STRING,
+	/* पागल  प्रतिरोधक  एलएलपी */
+	.wData = {
+		0x092a, 0x093e, 0x0917, 0x0932, 0x0020, 0x0020, 0x092a, 0x094d,
+		0x0930, 0x0924, 0x093f, 0x0930, 0x094b, 0x0927, 0x0915, 0x0020,
+		0x0020, 0x090f, 0x0932, 0x090f, 0x0932, 0x092a, 0x0940
+	}
+};
+
+
+static const struct usb_string_descriptor string_4 = {
+	.bLength = USB_DT_STRING_SIZE(18),
+	.bDescriptorType = USB_DT_STRING,
+	/* सीडीसी-एसीएम नमूना */
+	.wData = {
+		0x0938, 0x0940, 0x0921, 0x0940, 0x0938, 0x0940, 0x002d, 0x090f,
+		0x0938, 0x0940, 0x090f, 0x092e, 0x0020, 0x0928, 0x092e, 0x0942,
+		0x0928, 0x093e
+	}
+};
+
+static const struct usb_string_descriptor string_5 = {
+	.bLength = USB_DT_STRING_SIZE(5),
+	.bDescriptorType = USB_DT_STRING,
+	/* नमूना */
+	.wData = {
+		0x0928, 0x092e, 0x0942, 0x0928, 0x093e
+	}
+};
+
+static const struct usb_string_descriptor **string_data[2] = {
+	(const struct usb_string_descriptor *[]){&string_0, &string_1, &string_2},
+	(const struct usb_string_descriptor *[]){&string_3, &string_4, &string_5}
+};
+
+static const struct usbd_info_string string = {
+	.lang_list = &string_lang_list,
+	.count = 3,
+	.data = string_data
+};
+
+static const struct usbd_info info = {
+	.device = {
+		.desc = &dev_desc,
+		.string = &string
+	},
+
+	.config = {{
+		.desc = (const struct usb_config_descriptor *) &config_desc,
+		.string = &string
+	}}
+};
 
 static void cdcacm_control_request(usbd_device *usbd_dev, uint8_t ep,
 				const struct usb_setup_data *setup_data)
@@ -223,8 +282,10 @@ static void cdcacm_control_request(usbd_device *usbd_dev, uint8_t ep,
 			break;
 		}
 
+		static uint8_t tmp_buf[sizeof(struct usb_cdc_line_coding)];
+
 		/* Just read what ever host is sending and do the status stage */
-		usbd_ep0_transfer(usbd_dev, setup_data, usbd_control_buffer,
+		usbd_ep0_transfer(usbd_dev, setup_data, tmp_buf,
 			setup_data->wLength, NULL);
 	return;
 	}
@@ -333,8 +394,7 @@ int main(void)
 	cdcacm_target_init();
 
 	usbd_dev = usbd_init(cdcacm_target_usb_driver(),
-		cdcacm_target_usb_config(), &dev,
-		usbd_control_buffer, sizeof(usbd_control_buffer));
+		cdcacm_target_usb_config(), &info);
 
 	usbd_register_set_config_callback(usbd_dev, cdcacm_set_config);
 	usbd_register_setup_callback(usbd_dev, cdcacm_control_request);

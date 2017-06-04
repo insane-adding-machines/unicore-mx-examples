@@ -32,251 +32,329 @@
  */
 
 /*
- * Midi specific endpoint descriptors.
+ * Table B-1: MIDI Adapter Device Descriptor
  */
-static const struct usb_midi_endpoint_descriptor midi_bulk_endp[] = {{
-	/* Table B-12: MIDI Adapter Class-specific Bulk OUT Endpoint
-	 * Descriptor
-	 */
-	.head = {
-		.bLength = sizeof(struct usb_midi_endpoint_descriptor),
-		.bDescriptorType = USB_AUDIO_DT_CS_ENDPOINT,
-		.bDescriptorSubType = USB_MIDI_SUBTYPE_MS_GENERAL,
-		.bNumEmbMIDIJack = 1,
-	},
-	.jack[0] = {
-		.baAssocJackID = 0x01,
-	},
-}, {
-	/* Table B-14: MIDI Adapter Class-specific Bulk IN Endpoint
-	 * Descriptor
-	 */
-	.head = {
-		.bLength = sizeof(struct usb_midi_endpoint_descriptor),
-		.bDescriptorType = USB_AUDIO_DT_CS_ENDPOINT,
-		.bDescriptorSubType = USB_MIDI_SUBTYPE_MS_GENERAL,
-		.bNumEmbMIDIJack = 1,
-	},
-	.jack[0] = {
-		.baAssocJackID = 0x03,
-	},
-} };
-
-/*
- * Standard endpoint descriptors
- */
-static const struct usb_endpoint_descriptor bulk_endp[] = {{
-	/* Table B-11: MIDI Adapter Standard Bulk OUT Endpoint Descriptor */
-	.bLength = USB_DT_ENDPOINT_SIZE,
-	.bDescriptorType = USB_DT_ENDPOINT,
-	.bEndpointAddress = 0x01,
-	.bmAttributes = USB_ENDPOINT_ATTR_BULK,
-	.wMaxPacketSize = 0x40,
-	.bInterval = 0x00,
-
-	.extra = &midi_bulk_endp[0],
-	.extra_len = sizeof(midi_bulk_endp[0])
-}, {
-	.bLength = USB_DT_ENDPOINT_SIZE,
-	.bDescriptorType = USB_DT_ENDPOINT,
-	.bEndpointAddress = 0x81,
-	.bmAttributes = USB_ENDPOINT_ATTR_BULK,
-	.wMaxPacketSize = 0x40,
-	.bInterval = 0x00,
-
-	.extra = &midi_bulk_endp[1],
-	.extra_len = sizeof(midi_bulk_endp[1])
-} };
-
-/*
- * Table B-4: MIDI Adapter Class-specific AC Interface Descriptor
- */
-static const struct {
-	struct usb_audio_header_descriptor_head header_head;
-	struct usb_audio_header_descriptor_body header_body;
-} __attribute__((packed)) audio_control_functional_descriptors = {
-	.header_head = {
-		.bLength = sizeof(struct usb_audio_header_descriptor_head) +
-		           1 * sizeof(struct usb_audio_header_descriptor_body),
-		.bDescriptorType = USB_AUDIO_DT_CS_INTERFACE,
-		.bDescriptorSubtype = USB_AUDIO_TYPE_HEADER,
-		.bcdADC = 0x0100,
-		.wTotalLength =
-			   sizeof(struct usb_audio_header_descriptor_head) +
-			   1 * sizeof(struct usb_audio_header_descriptor_body),
-		.binCollection = 1,
-	},
-	.header_body = {
-		.baInterfaceNr = 0x01,
-	},
+static const struct usb_device_descriptor dev_desc = {
+	.bLength = USB_DT_DEVICE_SIZE,
+	.bDescriptorType = USB_DT_DEVICE,
+	.bcdUSB = 0x0200,    /* was 0x0110 in Table B-1 example descriptor */
+	.bDeviceClass = 0,   /* device defined at interface level */
+	.bDeviceSubClass = 0,
+	.bDeviceProtocol = 0,
+	.bMaxPacketSize0 = 64,
+	.idVendor = 0x6666,  /* Prototype product vendor ID */
+	.idProduct = 0x5119, /* dd if=/dev/random bs=2 count=1 | hexdump */
+	.bcdDevice = 0x0100,
+	.iManufacturer = 1,  /* index to string desc */
+	.iProduct = 2,       /* index to string desc */
+	.iSerialNumber = 0,
+	.bNumConfigurations = 1
 };
 
-/*
- * Table B-3: MIDI Adapter Standard AC Interface Descriptor
- */
-static const struct usb_interface_descriptor audio_control_iface[] = {{
-	.bLength = USB_DT_INTERFACE_SIZE,
-	.bDescriptorType = USB_DT_INTERFACE,
-	.bInterfaceNumber = 0,
-	.bAlternateSetting = 0,
-	.bNumEndpoints = 0,
-	.bInterfaceClass = USB_CLASS_AUDIO,
-	.bInterfaceSubClass = USB_AUDIO_SUBCLASS_CONTROL,
-	.bInterfaceProtocol = 0,
-	.iInterface = 0,
-
-	.extra = &audio_control_functional_descriptors,
-	.extra_len = sizeof(audio_control_functional_descriptors)
-} };
-
-/*
- * Class-specific MIDI streaming interface descriptor
- */
-static const struct {
-	struct usb_midi_header_descriptor header;
-	struct usb_midi_in_jack_descriptor in_embedded;
-	struct usb_midi_in_jack_descriptor in_external;
-	struct usb_midi_out_jack_descriptor out_embedded;
-	struct usb_midi_out_jack_descriptor out_external;
-} __attribute__((packed)) midi_streaming_functional_descriptors = {
-	/* Table B-6: Midi Adapter Class-specific MS Interface Descriptor */
-	.header = {
-		.bLength = sizeof(struct usb_midi_header_descriptor),
-		.bDescriptorType = USB_AUDIO_DT_CS_INTERFACE,
-		.bDescriptorSubtype = USB_MIDI_SUBTYPE_MS_HEADER,
-		.bcdMSC = 0x0100,
-		.wTotalLength = sizeof(midi_streaming_functional_descriptors),
-	},
-	/* Table B-7: MIDI Adapter MIDI IN Jack Descriptor (Embedded) */
-	.in_embedded = {
-		.bLength = sizeof(struct usb_midi_in_jack_descriptor),
-		.bDescriptorType = USB_AUDIO_DT_CS_INTERFACE,
-		.bDescriptorSubtype = USB_MIDI_SUBTYPE_MIDI_IN_JACK,
-		.bJackType = USB_MIDI_JACK_TYPE_EMBEDDED,
-		.bJackID = 0x01,
-		.iJack = 0x00,
-	},
-	/* Table B-8: MIDI Adapter MIDI IN Jack Descriptor (External) */
-	.in_external = {
-		.bLength = sizeof(struct usb_midi_in_jack_descriptor),
-		.bDescriptorType = USB_AUDIO_DT_CS_INTERFACE,
-		.bDescriptorSubtype = USB_MIDI_SUBTYPE_MIDI_IN_JACK,
-		.bJackType = USB_MIDI_JACK_TYPE_EXTERNAL,
-		.bJackID = 0x02,
-		.iJack = 0x00,
-	},
-	/* Table B-9: MIDI Adapter MIDI OUT Jack Descriptor (Embedded) */
-	.out_embedded = {
-		.head = {
-			.bLength = sizeof(struct usb_midi_out_jack_descriptor),
-			.bDescriptorType = USB_AUDIO_DT_CS_INTERFACE,
-			.bDescriptorSubtype = USB_MIDI_SUBTYPE_MIDI_OUT_JACK,
-			.bJackType = USB_MIDI_JACK_TYPE_EMBEDDED,
-			.bJackID = 0x03,
-			.bNrInputPins = 1,
-		},
-		.source[0] = {
-			.baSourceID = 0x02,
-			.baSourcePin = 0x01,
-		},
-		.tail = {
-			.iJack = 0x00,
-		}
-	},
-	/* Table B-10: MIDI Adapter MIDI OUT Jack Descriptor (External) */
-	.out_external = {
-		.head = {
-			.bLength = sizeof(struct usb_midi_out_jack_descriptor),
-			.bDescriptorType = USB_AUDIO_DT_CS_INTERFACE,
-			.bDescriptorSubtype = USB_MIDI_SUBTYPE_MIDI_OUT_JACK,
-			.bJackType = USB_MIDI_JACK_TYPE_EXTERNAL,
-			.bJackID = 0x04,
-			.bNrInputPins = 1,
-		},
-		.source[0] = {
-			.baSourceID = 0x01,
-			.baSourcePin = 0x01,
-		},
-		.tail = {
-			.iJack = 0x00,
-		},
-	},
+static const struct usb_string_descriptor string_lang_list = {
+	.bLength = USB_DT_STRING_SIZE(2),
+	.bDescriptorType = USB_DT_STRING,
+	.wData = {
+		USB_LANGID_ENGLISH_UNITED_STATES,
+		USB_LANGID_HINDI
+	}
 };
 
-/*
- * Table B-5: MIDI Adapter Standard MS Interface Descriptor
- */
-static const struct usb_interface_descriptor midi_streaming_iface[] = {{
-	.bLength = USB_DT_INTERFACE_SIZE,
-	.bDescriptorType = USB_DT_INTERFACE,
-	.bInterfaceNumber = 1,
-	.bAlternateSetting = 0,
-	.bNumEndpoints = 2,
-	.bInterfaceClass = USB_CLASS_AUDIO,
-	.bInterfaceSubClass = USB_AUDIO_SUBCLASS_MIDISTREAMING,
-	.bInterfaceProtocol = 0,
-	.iInterface = 0,
+/* string descriptor string_[0..5] generated using usb-string.py */
 
-	.endpoint = bulk_endp,
+static const struct usb_string_descriptor string_0 = {
+	.bLength = USB_DT_STRING_SIZE(10),
+	.bDescriptorType = USB_DT_STRING,
+	/* unicore-mx */
+	.wData = {
+		0x0075, 0x006e, 0x0069, 0x0063, 0x006f, 0x0072, 0x0065, 0x002d,
+		0x006d, 0x0078
+	}
+};
 
-	.extra = &midi_streaming_functional_descriptors,
-	.extra_len = sizeof(midi_streaming_functional_descriptors)
-} };
-
-static const struct usb_interface ifaces[] = {{
-	.num_altsetting = 1,
-	.altsetting = audio_control_iface,
-}, {
-	.num_altsetting = 1,
-	.altsetting = midi_streaming_iface,
-} };
-
-const uint8_t *usb_strings_english[] = {
-	(uint8_t *) "unicore-mx",
-	(uint8_t *) "MIDI Demo"
+static const struct usb_string_descriptor string_1 = {
+	.bLength = USB_DT_STRING_SIZE(9),
+	.bDescriptorType = USB_DT_STRING,
+	/* MIDI Demo */
+	.wData = {
+		0x004d, 0x0049, 0x0044, 0x0049, 0x0020, 0x0044, 0x0065, 0x006d,
+		0x006f
+	}
 };
 
 /*
  * MIDI = मिडी
  * Demo, DEMO = नमूना
  */
-const uint8_t *usb_strings_hindi[] = {
-	(uint8_t *) "unicore-mx",
-	(uint8_t *) "मिडी नमूना"
+
+static const struct usb_string_descriptor string_2 = {
+	.bLength = USB_DT_STRING_SIZE(10),
+	.bDescriptorType = USB_DT_STRING,
+	/* यूनिकोर-मस */
+	.wData = {
+		0x092f, 0x0942, 0x0928, 0x093f, 0x0915, 0x094b, 0x0930, 0x002d,
+		0x092e, 0x0938
+	}
 };
 
-const struct usb_string_utf8_data usb_strings[] = {{
-	.data = usb_strings_english,
+static const struct usb_string_descriptor string_3 = {
+	.bLength = USB_DT_STRING_SIZE(10),
+	.bDescriptorType = USB_DT_STRING,
+	/* मिडी नमूना */
+	.wData = {
+		0x092e, 0x093f, 0x0921, 0x0940, 0x0020, 0x0928, 0x092e, 0x0942,
+		0x0928, 0x093e
+	}
+};
+
+static const struct usb_string_descriptor **string_data[2] = {
+	(const struct usb_string_descriptor *[]){&string_0, &string_1},
+	(const struct usb_string_descriptor *[]){&string_2, &string_3}
+};
+
+static const struct usbd_info_string string = {
+	.lang_list = &string_lang_list,
 	.count = 2,
-	.lang_id = USB_LANGID_ENGLISH_UNITED_STATES
-}, {
-	.data = usb_strings_hindi,
-	.count = 2,
-	.lang_id = USB_LANGID_HINDI
-}, {
-	.data = NULL
-}};
+	.data = string_data
+};
 
-/*
- * Table B-2: MIDI Adapter Configuration Descriptor
- */
-static const struct usb_config_descriptor config[] = {{
-	.bLength = USB_DT_CONFIGURATION_SIZE,
-	.bDescriptorType = USB_DT_CONFIGURATION,
-	.wTotalLength = 0, /* can be anything, it is updated automatically
-			      when the usb code prepares the descriptor */
-	.bNumInterfaces = 2, /* control and data */
-	.bConfigurationValue = 1,
-	.iConfiguration = 0,
-	.bmAttributes = 0x80, /* bus powered */
-	.bMaxPower = 0x32,
+static const struct __attribute__((packed)) {
+	/*
+	 * Table B-2: MIDI Adapter Configuration Descriptor
+	 */
+	struct usb_config_descriptor config;
 
-	.interface = ifaces,
-	.string = usb_strings
-}};
+	/*
+	 * Table B-3: MIDI Adapter Standard AC Interface Descriptor
+	 */
+	struct usb_interface_descriptor audio_control_iface;
 
-/* Buffer to be used for control requests. */
-uint8_t usbd_control_buffer[128];
+	/*
+	 * Table B-4: MIDI Adapter Class-specific AC Interface Descriptor
+	 */
+	struct {
+		struct usb_audio_header_descriptor_head header_head;
+		struct usb_audio_header_descriptor_body header_body;
+	} __attribute__((packed)) audio_control_functional_descriptors;
+
+	/*
+	 * Table B-5: MIDI Adapter Standard MS Interface Descriptor
+	 */
+	struct usb_interface_descriptor midi_streaming_iface;
+
+	/*
+	 * Class-specific MIDI streaming interface descriptor
+	 */
+	struct {
+		struct usb_midi_header_descriptor header;
+		struct usb_midi_in_jack_descriptor in_embedded;
+		struct usb_midi_in_jack_descriptor in_external;
+		struct usb_midi_out_jack_descriptor out_embedded;
+		struct usb_midi_out_jack_descriptor out_external;
+	} __attribute__((packed)) midi_streaming_functional_descriptors;
+
+	struct {
+		/*
+		 * Standard endpoint descriptor
+		 */
+		struct usb_endpoint_descriptor bulk_endp;
+
+		/*
+		 * Midi specific endpoint descriptor.
+		 */
+		struct usb_midi_endpoint_descriptor midi_bulk_endp;
+	} __attribute__((packed)) out, in;
+} config_desc = {
+	.config = {
+		.bLength = USB_DT_CONFIGURATION_SIZE,
+		.bDescriptorType = USB_DT_CONFIGURATION,
+		.wTotalLength = sizeof(config_desc),
+		.bNumInterfaces = 2, /* control and data */
+		.bConfigurationValue = 1,
+		.iConfiguration = 0,
+		.bmAttributes = 0x80, /* bus powered */
+		.bMaxPower = 0x32
+	},
+
+	.audio_control_iface = {
+		.bLength = USB_DT_INTERFACE_SIZE,
+		.bDescriptorType = USB_DT_INTERFACE,
+		.bInterfaceNumber = 0,
+		.bAlternateSetting = 0,
+		.bNumEndpoints = 0,
+		.bInterfaceClass = USB_CLASS_AUDIO,
+		.bInterfaceSubClass = USB_AUDIO_SUBCLASS_CONTROL,
+		.bInterfaceProtocol = 0,
+		.iInterface = 0,
+	},
+
+	.audio_control_functional_descriptors = {
+		.header_head = {
+			.bLength = sizeof(struct usb_audio_header_descriptor_head) +
+					   1 * sizeof(struct usb_audio_header_descriptor_body),
+			.bDescriptorType = USB_AUDIO_DT_CS_INTERFACE,
+			.bDescriptorSubtype = USB_AUDIO_TYPE_HEADER,
+			.bcdADC = 0x0100,
+			.wTotalLength =
+					sizeof(struct usb_audio_header_descriptor_head) +
+					1 * sizeof(struct usb_audio_header_descriptor_body),
+			.binCollection = 1,
+		},
+		.header_body = {
+			.baInterfaceNr = 0x01,
+		},
+	},
+
+	.midi_streaming_iface = {
+		.bLength = USB_DT_INTERFACE_SIZE,
+		.bDescriptorType = USB_DT_INTERFACE,
+		.bInterfaceNumber = 1,
+		.bAlternateSetting = 0,
+		.bNumEndpoints = 2,
+		.bInterfaceClass = USB_CLASS_AUDIO,
+		.bInterfaceSubClass = USB_AUDIO_SUBCLASS_MIDISTREAMING,
+		.bInterfaceProtocol = 0,
+		.iInterface = 0,
+	},
+
+	.midi_streaming_functional_descriptors = {
+		/* Table B-6: Midi Adapter Class-specific MS Interface Descriptor */
+		.header = {
+			.bLength = sizeof(struct usb_midi_header_descriptor),
+			.bDescriptorType = USB_AUDIO_DT_CS_INTERFACE,
+			.bDescriptorSubtype = USB_MIDI_SUBTYPE_MS_HEADER,
+			.bcdMSC = 0x0100,
+			.wTotalLength =
+				sizeof(struct usb_midi_header_descriptor) +
+				sizeof(struct usb_midi_in_jack_descriptor) * 2 +
+				sizeof(struct usb_midi_out_jack_descriptor) * 2,
+		},
+
+		/* Table B-7: MIDI Adapter MIDI IN Jack Descriptor (Embedded) */
+		.in_embedded = {
+			.bLength = sizeof(struct usb_midi_in_jack_descriptor),
+			.bDescriptorType = USB_AUDIO_DT_CS_INTERFACE,
+			.bDescriptorSubtype = USB_MIDI_SUBTYPE_MIDI_IN_JACK,
+			.bJackType = USB_MIDI_JACK_TYPE_EMBEDDED,
+			.bJackID = 0x01,
+			.iJack = 0x00,
+		},
+
+		/* Table B-8: MIDI Adapter MIDI IN Jack Descriptor (External) */
+		.in_external = {
+			.bLength = sizeof(struct usb_midi_in_jack_descriptor),
+			.bDescriptorType = USB_AUDIO_DT_CS_INTERFACE,
+			.bDescriptorSubtype = USB_MIDI_SUBTYPE_MIDI_IN_JACK,
+			.bJackType = USB_MIDI_JACK_TYPE_EXTERNAL,
+			.bJackID = 0x02,
+			.iJack = 0x00,
+		},
+
+		/* Table B-9: MIDI Adapter MIDI OUT Jack Descriptor (Embedded) */
+		.out_embedded = {
+			.head = {
+				.bLength = sizeof(struct usb_midi_out_jack_descriptor),
+				.bDescriptorType = USB_AUDIO_DT_CS_INTERFACE,
+				.bDescriptorSubtype = USB_MIDI_SUBTYPE_MIDI_OUT_JACK,
+				.bJackType = USB_MIDI_JACK_TYPE_EMBEDDED,
+				.bJackID = 0x03,
+				.bNrInputPins = 1,
+			},
+			.source[0] = {
+				.baSourceID = 0x02,
+				.baSourcePin = 0x01,
+			},
+			.tail = {
+				.iJack = 0x00,
+			}
+		},
+
+		/* Table B-10: MIDI Adapter MIDI OUT Jack Descriptor (External) */
+		.out_external = {
+			.head = {
+				.bLength = sizeof(struct usb_midi_out_jack_descriptor),
+				.bDescriptorType = USB_AUDIO_DT_CS_INTERFACE,
+				.bDescriptorSubtype = USB_MIDI_SUBTYPE_MIDI_OUT_JACK,
+				.bJackType = USB_MIDI_JACK_TYPE_EXTERNAL,
+				.bJackID = 0x04,
+				.bNrInputPins = 1,
+			},
+			.source[0] = {
+				.baSourceID = 0x01,
+				.baSourcePin = 0x01,
+			},
+			.tail = {
+				.iJack = 0x00,
+			}
+		}
+	},
+
+	.out = {
+		.bulk_endp = {
+			/* Table B-11: MIDI Adapter Standard Bulk OUT Endpoint Descriptor */
+			.bLength = USB_DT_ENDPOINT_SIZE,
+			.bDescriptorType = USB_DT_ENDPOINT,
+			.bEndpointAddress = 0x01,
+			.bmAttributes = USB_ENDPOINT_ATTR_BULK,
+			.wMaxPacketSize = 0x40,
+			.bInterval = 0x00,
+		},
+
+		.midi_bulk_endp = {
+			/* Table B-12: MIDI Adapter Class-specific Bulk OUT Endpoint
+			 * Descriptor
+			 */
+			.head = {
+				.bLength = sizeof(struct usb_midi_endpoint_descriptor),
+				.bDescriptorType = USB_AUDIO_DT_CS_ENDPOINT,
+				.bDescriptorSubType = USB_MIDI_SUBTYPE_MS_GENERAL,
+				.bNumEmbMIDIJack = 1,
+			},
+			.jack[0] = {
+				.baAssocJackID = 0x01,
+			},
+		}
+	},
+
+	.in = {
+		.bulk_endp = {
+			/* Table B-11: MIDI Adapter Standard Bulk IN Endpoint Descriptor */
+			.bLength = USB_DT_ENDPOINT_SIZE,
+			.bDescriptorType = USB_DT_ENDPOINT,
+			.bEndpointAddress = 0x81,
+			.bmAttributes = USB_ENDPOINT_ATTR_BULK,
+			.wMaxPacketSize = 0x40,
+			.bInterval = 0x00,
+		},
+
+		.midi_bulk_endp = {
+			/* Table B-14: MIDI Adapter Class-specific Bulk IN Endpoint
+			 * Descriptor
+			 */
+			.head = {
+				.bLength = sizeof(struct usb_midi_endpoint_descriptor),
+				.bDescriptorType = USB_AUDIO_DT_CS_ENDPOINT,
+				.bDescriptorSubType = USB_MIDI_SUBTYPE_MS_GENERAL,
+				.bNumEmbMIDIJack = 1,
+			},
+			.jack[0] = {
+				.baAssocJackID = 0x03,
+			},
+		}
+	}
+};
+
+static const struct usbd_info info = {
+	.device = {
+		.desc = &dev_desc,
+		.string = &string
+	},
+
+	.config = {{
+		.desc = (const struct usb_config_descriptor *) &config_desc,
+		.string = &string
+	}}
+};
 
 /* SysEx identity message, preformatted with correct USB framing information */
 const uint8_t sysex_identity[] = {
@@ -300,29 +378,6 @@ const uint8_t sysex_identity[] = {
 	0xf7,	/* SysEx end */
 	0x00,	/* Padding */
 	0x00,	/* Padding */
-};
-
-/*
- * Table B-1: MIDI Adapter Device Descriptor
- */
-static const struct usb_device_descriptor dev = {
-	.bLength = USB_DT_DEVICE_SIZE,
-	.bDescriptorType = USB_DT_DEVICE,
-	.bcdUSB = 0x0200,    /* was 0x0110 in Table B-1 example descriptor */
-	.bDeviceClass = 0,   /* device defined at interface level */
-	.bDeviceSubClass = 0,
-	.bDeviceProtocol = 0,
-	.bMaxPacketSize0 = 64,
-	.idVendor = 0x6666,  /* Prototype product vendor ID */
-	.idProduct = 0x5119, /* dd if=/dev/random bs=2 count=1 | hexdump */
-	.bcdDevice = 0x0100,
-	.iManufacturer = 1,  /* index to string desc */
-	.iProduct = 2,       /* index to string desc */
-	.iSerialNumber = 0,
-	.bNumConfigurations = 1,
-
-	.config = config,
-	.string = usb_strings
 };
 
 static bool error_recoverable(usbd_transfer_status status)
@@ -500,8 +555,7 @@ int main(void)
 
 	usbmidi_target_init();
 
-	usbd_dev = usbd_init(usbmidi_target_usb_driver(), NULL, &dev,
-			usbd_control_buffer, sizeof(usbd_control_buffer));
+	usbd_dev = usbd_init(usbmidi_target_usb_driver(), NULL, &info);
 
 	usbd_register_set_config_callback(usbd_dev, usbmidi_set_config);
 

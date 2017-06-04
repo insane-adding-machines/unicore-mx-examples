@@ -25,35 +25,67 @@
 #include <unicore-mx/usbd/usbd.h>
 #include "usb_stack_tester-target.h"
 
-const uint8_t *usb_strings_ascii[] = {
-	(uint8_t *) "Black Sphere Technologies",
-	(uint8_t *) "Simple Device",
-	(uint8_t *) "1001",
+static const struct usb_string_descriptor string_lang_list = {
+	.bLength = USB_DT_STRING_SIZE(1),
+	.bDescriptorType = USB_DT_STRING,
+	.wData = {
+		USB_LANGID_ENGLISH_UNITED_STATES
+	}
 };
 
-const struct usb_string_utf8_data usb_strings[] = {{
-	.data = usb_strings_ascii,
-	.count = 3,
-	.lang_id = USB_LANGID_ENGLISH_UNITED_STATES
-}, {
-	.data = NULL
-}};
+/* string descriptor string_[0..2] generated using usb-string.py */
 
-const struct usb_config_descriptor config[] = {{
+static const struct usb_string_descriptor string_0 = {
+	.bLength = USB_DT_STRING_SIZE(16),
+	.bDescriptorType = USB_DT_STRING,
+	/* Mad Resistor LLP */
+	.wData = {
+		0x004d, 0x0061, 0x0064, 0x0020, 0x0052, 0x0065, 0x0073, 0x0069,
+		0x0073, 0x0074, 0x006f, 0x0072, 0x0020, 0x004c, 0x004c, 0x0050
+	}
+};
+
+static const struct usb_string_descriptor string_1 = {
+	.bLength = USB_DT_STRING_SIZE(13),
+	.bDescriptorType = USB_DT_STRING,
+	/* Simple Device */
+	.wData = {
+		0x0053, 0x0069, 0x006d, 0x0070, 0x006c, 0x0065, 0x0020, 0x0044,
+		0x0065, 0x0076, 0x0069, 0x0063, 0x0065
+	}
+};
+
+static const struct usb_string_descriptor string_2 = {
+	.bLength = USB_DT_STRING_SIZE(4),
+	.bDescriptorType = USB_DT_STRING,
+	/* 1001 */
+	.wData = {
+		0x0031, 0x0030, 0x0030, 0x0031
+	}
+};
+
+static const struct usb_string_descriptor **string_data[1] = {
+	(const struct usb_string_descriptor *[]){&string_0, &string_1, &string_2},
+};
+
+static const struct usbd_info_string string = {
+	.lang_list = &string_lang_list,
+	.count = 3,
+	.data = string_data
+};
+
+const struct usb_config_descriptor config_desc = {
 	.bLength = USB_DT_CONFIGURATION_SIZE,
 	.bDescriptorType = USB_DT_CONFIGURATION,
-	.wTotalLength = 0,
+	.wTotalLength = sizeof(config_desc),
 	.bNumInterfaces = 0,
 	.bConfigurationValue = 1,
 	.iConfiguration = 0,
 	.bmAttributes = 0x80,
-	.bMaxPower = 0x32,
+	.bMaxPower = 0x32
+};
 
-	.interface = NULL,
-	.string = usb_strings
-}};
-
-const struct usb_device_descriptor dev = {
+const struct usb_device_descriptor dev_desc = {
 	.bLength = USB_DT_DEVICE_SIZE,
 	.bDescriptorType = USB_DT_DEVICE,
 	.bcdUSB = 0x0200,
@@ -67,18 +99,25 @@ const struct usb_device_descriptor dev = {
 	.iManufacturer = 1,
 	.iProduct = 2,
 	.iSerialNumber = 3,
-	.bNumConfigurations = 1,
-
-	.config = config,
-	.string = usb_strings
+	.bNumConfigurations = 1
 };
 
-/* Buffer to be used for control requests. */
-uint8_t usbd_control_buffer[1024];
+static const struct usbd_info info = {
+	.device = {
+		.desc = &dev_desc,
+		.string = &string
+	},
+
+	.config = {{
+		.desc = &config_desc,
+		.string = &string
+	}}
+};
 
 static void simple_setup_callback(usbd_device *usbd_dev, uint8_t ep_addr,
 				const struct usb_setup_data *setup_data)
 {
+	static uint16_t wValue;
 	(void) ep_addr; /* assuming ep_addr == 0 */
 
 	if (setup_data->bmRequestType != 0xC0) {
@@ -87,8 +126,8 @@ static void simple_setup_callback(usbd_device *usbd_dev, uint8_t ep_addr,
 	}
 
 	/* just secretly send length what wValue has */
-	memcpy(usbd_control_buffer, &setup_data->wValue, 2);
-	usbd_ep0_transfer(usbd_dev, setup_data, usbd_control_buffer, 2, NULL);
+	wValue = setup_data->wValue;
+	usbd_ep0_transfer(usbd_dev, setup_data, &wValue, sizeof(wValue), NULL);
 }
 
 int main(void)
@@ -97,8 +136,7 @@ int main(void)
 
 	usb_stack_tester_target_init();
 
-	usbd_dev = usbd_init(usb_stack_tester_target_usb_driver(), NULL,
-		&dev, usbd_control_buffer, sizeof(usbd_control_buffer));
+	usbd_dev = usbd_init(usb_stack_tester_target_usb_driver(), NULL, &info);
 	usbd_register_setup_callback(usbd_dev, simple_setup_callback);
 
 	while (1) {
