@@ -14,13 +14,13 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <unicore-mx/nrf/51/gpio.h>
+#include <unicore-mx/nrf/gpio.h>
 
 static void gpio_setup(void)
 {
   /* Setup GPIOPIN19 (LED) */
   /* Using API functions: */
-  gpio_setup_mode(GPIOPIN19, GPIO_DIR_OUTPUT, GPIO_PULL_NONE);
+  gpio_set_mode(GPIO, GPIO_DIR_OUTPUT, GPIO_PUPD_NONE, GPIO19);
 }
 
 int main(void)
@@ -33,7 +33,7 @@ int main(void)
   while (1) {
 
     /* Using API function gpio_toggle(): */
-    gpio_toggle(GPIOPIN19);  // LED on/off
+    gpio_toggle(GPIO, GPIO19);  // LED on/off
     for (i = 0; i < 800000; i++)  // Wait a bit.
       __asm__("nop");
   }

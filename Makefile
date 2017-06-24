@@ -25,6 +25,7 @@ TARGETS		+= lpc/lpc13xx lpc/lpc17xx #lpc/lpc43xx
 TARGETS		+= tiva/lm3s tiva/lm4f
 TARGETS		+= efm32/tg efm32/g efm32/lg efm32/gg
 TARGETS		+= vf6xx
+TARGETS		+= nrf/51
 TARGETS		+= qemu
 
 # Be silent per default, but 'make V=1' will show all compiler calls.
