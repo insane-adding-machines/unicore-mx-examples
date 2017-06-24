@@ -20,7 +20,7 @@ static void gpio_setup(void)
 {
   /* Setup GPIOPIN19 (LED) */
   /* Using API functions: */
-  gpio_set_mode(GPIO, GPIO_DIR_OUTPUT, GPIO_PUPD_NONE, GPIO19);
+  gpio_mode_setup(GPIO, GPIO_DIR_OUTPUT, GPIO_PUPD_NONE, GPIO19);
 }
 
 int main(void)
