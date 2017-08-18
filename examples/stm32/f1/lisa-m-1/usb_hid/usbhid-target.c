@@ -155,7 +155,7 @@ usbhid_target_accel_get(int16_t *x, int16_t *y, int16_t *z)
 
 const usbd_backend *usbhid_target_usb_driver(void)
 {
-	return USBD_STM32_FSDEV_V1;
+	return USBD_STM32_FSDEV;
 }
 
 void usbhid_detach_complete_before_scb_reset_core(void)

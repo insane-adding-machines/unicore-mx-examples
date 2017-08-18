@@ -35,5 +35,5 @@ void cdcacm_target_init(void)
 
 const usbd_backend *cdcacm_target_usb_driver(void)
 {
-	return USBD_STM32_FSDEV_V1;
+	return USBD_STM32_FSDEV;
 }

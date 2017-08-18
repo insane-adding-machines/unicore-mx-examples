@@ -46,7 +46,7 @@ void usbhid_target_usbd_after_init_and_before_first_poll(void)
 
 const usbd_backend *usbhid_target_usb_driver(void)
 {
-	return USBD_STM32_FSDEV_V1;
+	return USBD_STM32_FSDEV;
 }
 
 void usbhid_detach_complete_before_scb_reset_core(void)

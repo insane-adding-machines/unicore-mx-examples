@@ -260,7 +260,7 @@ int main(void)
 
   AFIO_MAPR |= AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_ON;
 
-  usbd_dev = usbd_init(USBD_STM32_FSDEV_V1,
+  usbd_dev = usbd_init(USBD_STM32_FSDEV,
 		       &dev,
 		       usbd_control_buffer,
 		       sizeof(usbd_control_buffer));

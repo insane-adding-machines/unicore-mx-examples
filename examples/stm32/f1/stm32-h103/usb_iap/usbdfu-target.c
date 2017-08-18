@@ -34,7 +34,7 @@ void usbdfu_target_init(void)
 
 const usbd_backend *usbdfu_target_usb_driver(void)
 {
-	return USBD_STM32_FSDEV_V1;
+	return USBD_STM32_FSDEV;
 }
 
 void usbdfu_target_usbd_after_init_and_before_first_poll(void)
