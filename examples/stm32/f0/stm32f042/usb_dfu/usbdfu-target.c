@@ -1,62 +1,65 @@
 #include <unicore-mx/cm3/scb.h>
-#include <unicore-mx/stm32/rcc.h>
-#include <unicore-mx/stm32/gpio.h>
+#include <unicore-mx/stm32/crs.h>
 #include <unicore-mx/stm32/flash.h>
+#include <unicore-mx/stm32/rcc.h>
+#include <unicore-mx/stm32/syscfg.h>
+
 #include "usbdfu-target.h"
 
-#define APP_ADDRESS	0x08002000
+#define APP_ADDRESS		0x08002000
 
 /* This string is used by ST Microelectronics' DfuSe utility. */
 const struct usb_string_descriptor string_st_flash_detail = {
 	.bLength = USB_DT_STRING_SIZE(46),
 	.bDescriptorType = USB_DT_STRING,
-	/* @Internal Flash   /0x08000000/8*001Ka,56*001Kg */
+	/* @Internal Flash   /0x08000000/8*001Ka,24*001Kg */
 	.wData = {
 		0x0040, 0x0049, 0x006e, 0x0074, 0x0065, 0x0072, 0x006e, 0x0061,
 		0x006c, 0x0020, 0x0046, 0x006c, 0x0061, 0x0073, 0x0068, 0x0020,
 		0x0020, 0x0020, 0x002f, 0x0030, 0x0078, 0x0030, 0x0038, 0x0030,
 		0x0030, 0x0030, 0x0030, 0x0030, 0x0030, 0x002f, 0x0038, 0x002a,
-		0x0030, 0x0030, 0x0031, 0x004b, 0x0061, 0x002c, 0x0035, 0x0036,
+		0x0030, 0x0030, 0x0031, 0x004b, 0x0061, 0x002c, 0x0032, 0x0034,
 		0x002a, 0x0030, 0x0030, 0x0031, 0x004b, 0x0067
 	}
 };
 
 void usbdfu_target_init(void)
 {
-	rcc_periph_clock_enable(RCC_GPIOA);
+	/* Boot the application if it's valid. */
+	if ((*(volatile uint32_t *)APP_ADDRESS & 0x2FFE0000) == 0x20000000) {
+		/* Remap shadow memory to SRAM */
+		SYSCFG_CFGR1 &= ~(SYSCFG_CFGR1_MEM_MODE);
+		SYSCFG_CFGR1 |= SYSCFG_CFGR1_MEM_MODE_SRAM;
 
-	if (!gpio_get(GPIOA, GPIO10)) {
-		/* Boot the application if it's valid. */
-		if ((*(volatile uint32_t *)APP_ADDRESS & 0x2FFE0000) == 0x20000000) {
-			/* Set vector table base address. */
-			SCB_VTOR = APP_ADDRESS & 0xFFFF;
-			/* Initialise master stack pointer. */
-			asm volatile("msr msp, %0"::"g"
-				     (*(volatile uint32_t *)APP_ADDRESS));
-			/* Jump to application. */
-			(*(void (**)())(APP_ADDRESS + 4))();
-		}
+		/* Initialise master stack pointer */
+		asm volatile("msr msp, %0"::"g"
+			     (*(volatile uint32_t *)APP_ADDRESS));
+
+		/* Jump to application */
+		(*(void (**)())(APP_ADDRESS + 4))();
 	}
 
-	rcc_clock_setup_in_hsi_out_48mhz();
+	/* start HSI48 */
+	rcc_clock_setup_in_hsi48_out_48mhz();
 
-	rcc_periph_clock_enable(RCC_GPIOA);
-	rcc_periph_clock_enable(RCC_AFIO);
+	/* use usb SOF as correction source for HSI48 */
+	crs_autotrim_usb_enable();
 
-	AFIO_MAPR |= AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_ON;
-	gpio_set_mode(GPIOA, GPIO_MODE_INPUT, 0, GPIO15);
+	/* use HSI48 for USB */
+	rcc_set_usbclk_source(RCC_HSI48);
+
+	/* usb HSI48 for system clock */
+	rcc_set_sysclk_source(RCC_HSI48);
+
+	rcc_periph_clock_enable(RCC_SYSCFG_COMP);
+
+	/* PA11_PA12_RMP */
+	SYSCFG_CFGR1 |= 1 << 4;
 }
 
 const usbd_backend *usbdfu_target_usb_driver(void)
 {
 	return USBD_STM32_FSDEV;
-}
-
-void usbdfu_target_usbd_after_init_and_before_first_poll(void)
-{
-	gpio_set(GPIOA, GPIO15);
-	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ,
-		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO15);
 }
 
 /* flash operation */

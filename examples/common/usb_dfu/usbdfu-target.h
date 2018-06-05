@@ -24,6 +24,7 @@
 
 /* these functions are provided by target */
 
+extern const struct usb_string_descriptor string_st_flash_detail;
 extern void usbdfu_target_init(void);
 extern const usbd_backend *usbdfu_target_usb_driver(void);
 
